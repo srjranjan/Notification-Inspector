@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import io.github.srjranjan.shared.generated.resources.Res
+import io.github.srjranjan.shared.generated.resources.ic_logo
 
 object NotificationBannerEngine {
     private const val CHANNEL_ID = "notification_inspector_channel"
@@ -21,7 +23,7 @@ object NotificationBannerEngine {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "Shows intercepted push notifications on-device"
             }
@@ -34,24 +36,21 @@ object NotificationBannerEngine {
         }
 
         val pendingIntent = launchIntent.let {
-            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val flags =
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            } else {
-                PendingIntent.FLAG_UPDATE_CURRENT
-            }
             PendingIntent.getActivity(context, 0, it, flags)
         }
 
         // Simple default android app icon or fallback
-        val iconRes = context.applicationInfo.icon
+        val iconRes = Res.drawable.ic_logo.hashCode()
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(iconRes)
             .setContentTitle(title ?: "Interception Triggered 🔔")
             .setContentText(body ?: "A new push notification has been logged.")
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setSilent(true)
             .setAutoCancel(true)
             .apply {
                 if (pendingIntent != null) {

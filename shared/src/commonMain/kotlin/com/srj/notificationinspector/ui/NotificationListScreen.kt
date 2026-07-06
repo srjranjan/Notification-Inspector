@@ -1,5 +1,6 @@
 package com.srj.notificationinspector.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,8 +20,11 @@ import androidx.compose.ui.unit.sp
 import com.srj.notificationinspector.model.NotificationLog
 import com.srj.notificationinspector.repository.NotificationRepository
 import com.srj.notificationinspector.ui.formatTimestamp
+import io.github.srjranjan.shared.generated.resources.Res
+import io.github.srjranjan.shared.generated.resources.ic_logo
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +48,19 @@ fun NotificationListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Notification Inspector", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(Res.drawable.ic_logo),
+                            contentDescription = "SDK Logo",
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Text("Notification Inspector", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    }
+                },
                 actions = {
                     TextButton(onClick = {
                         coroutineScope.launch {
@@ -103,10 +119,12 @@ fun NotificationListScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "🔔",
-                            fontSize = 48.sp,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                        Image(
+                            painter = painterResource(Res.drawable.ic_logo),
+                            contentDescription = "SDK Logo Empty",
+                            modifier = Modifier
+                                .size(140.dp)
+                                .padding(bottom = 16.dp)
                         )
                         Text(
                             text = if (searchQuery.isBlank()) "No notification logs intercepted yet." else "No results found.",
