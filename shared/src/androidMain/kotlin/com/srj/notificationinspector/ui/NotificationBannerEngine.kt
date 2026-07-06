@@ -23,7 +23,7 @@ object NotificationBannerEngine {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = "Shows intercepted push notifications on-device"
             }
@@ -49,8 +49,8 @@ object NotificationBannerEngine {
             .setContentTitle(title ?: "Interception Triggered 🔔")
             .setContentText(body ?: "A new push notification has been logged.")
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setSilent(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setAutoCancel(true)
             .apply {
                 if (pendingIntent != null) {
