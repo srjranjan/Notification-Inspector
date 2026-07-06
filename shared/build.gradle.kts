@@ -132,6 +132,16 @@ fun findPublishingProperty(name: String): String? {
 }
 
 afterEvaluate {
+    val target = findPublishingProperty("publishTarget") ?: "android"
+    if (!target.equals("all", ignoreCase = true)) {
+        val publicationsToRemove = publishing.publications.filter { publication ->
+            !publication.name.contains(target, ignoreCase = true)
+        }
+        publicationsToRemove.forEach {
+            publishing.publications.remove(it)
+        }
+    }
+
     publishing {
         publications {
             withType<MavenPublication> {
