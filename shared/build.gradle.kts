@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.androidx.room)
     id("maven-publish")
     id("signing")
+    id("com.gradleup.nmcp") version "1.5.0"
 }
 
 group = "io.github.srjranjan"
@@ -161,16 +162,13 @@ afterEvaluate {
             }
         }
 
-        repositories {
-            maven {
-                name = "SonatypeCentral"
-                url = uri("https://central.sonatype.com/repository/maven-releases/")
-                credentials {
-                    username = findPublishingProperty("mavenCentralUsername")
-                    password = findPublishingProperty("mavenCentralPassword")
-                }
-            }
-        }
+    }
+}
+
+nmcp {
+    publishAllPublicationsToCentralPortal {
+        username.set(findPublishingProperty("mavenCentralUsername"))
+        password.set(findPublishingProperty("mavenCentralPassword"))
     }
 }
 
