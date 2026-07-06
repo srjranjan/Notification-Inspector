@@ -89,7 +89,7 @@ fun App(context: PlatformContext) {
         )
     )
 
-    var mockIndex by remember { mutableStateOf(0) }
+    var mockIndex by remember { mutableIntStateOf(0) }
 
     if (showInspector) {
         Scaffold(
