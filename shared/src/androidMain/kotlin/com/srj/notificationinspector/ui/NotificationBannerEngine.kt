@@ -7,8 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import io.github.srjranjan.shared.generated.resources.Res
-import io.github.srjranjan.shared.generated.resources.ic_logo
 
 object NotificationBannerEngine {
     private const val CHANNEL_ID = "notification_inspector_channel"
@@ -41,8 +39,8 @@ object NotificationBannerEngine {
             PendingIntent.getActivity(context, 0, it, flags)
         }
 
-        // Simple default android app icon or fallback
-        val iconRes = Res.drawable.ic_logo.hashCode()
+        // Use the library's Android resource R.drawable.ic_logo
+        val iconRes = com.srj.notificationinspector.shared.R.drawable.ic_logo
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(iconRes)
