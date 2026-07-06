@@ -17,7 +17,7 @@ actual class NotificationInspector actual constructor(private val context: Platf
 
     actual fun capture(message: RemoteMessage) {
         val title = message.notification?.title ?: message.data["title"]
-        val body = message.notification?.body ?: message.data["body"]
+        val body = message.notification?.body ?: message.data["bigMessage"]?:message.data["smallMessage"]
 
         // Convert the Firebase data Map to a pretty-printed 4-indent JSON string
         val formattedJson = try {
