@@ -18,32 +18,36 @@ group = "io.github.srjranjan"
 version = "1.0.0"
 
 kotlin {
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "Shared"
-            isStatic = true
+    val isAndroidOnly = !(findPublishingProperty("publishTarget") ?: "android").equals("all", ignoreCase = true)
+
+    if (!isAndroidOnly) {
+        listOf(
+            iosArm64(),
+            iosSimulatorArm64()
+        ).forEach { iosTarget ->
+            iosTarget.binaries.framework {
+                baseName = "Shared"
+                isStatic = true
+            }
         }
-    }
-    
-    jvm()
-    
-    js {
-        browser()
-    }
-    
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
+        
+        jvm()
+        
+        js {
+            browser()
+        }
+        
+        @OptIn(ExperimentalWasmDsl::class)
+        wasmJs {
+            browser()
+        }
     }
     
     androidLibrary {
        namespace = "com.srj.notificationinspector.shared"
        compileSdk = libs.versions.android.compileSdk.get().toInt()
        minSdk = libs.versions.android.minSdk.get().toInt()
-    
+     
        compilerOptions {
            jvmTarget = JvmTarget.JVM_11
        }
@@ -66,11 +70,14 @@ kotlin {
         }
 
         androidMain.get().dependsOn(dbMain)
-        iosMain.get().dependsOn(dbMain)
-        jvmMain.get().dependsOn(dbMain)
 
-        iosArm64Main.get().dependsOn(iosMain.get())
-        iosSimulatorArm64Main.get().dependsOn(iosMain.get())
+        if (!isAndroidOnly) {
+            iosMain.get().dependsOn(dbMain)
+            jvmMain.get().dependsOn(dbMain)
+
+            iosArm64Main.get().dependsOn(iosMain.get())
+            iosSimulatorArm64Main.get().dependsOn(iosMain.get())
+        }
 
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
@@ -90,8 +97,10 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
-        jsMain.dependencies {
-            implementation(libs.wrappers.browser)
+        if (!isAndroidOnly) {
+            jsMain.dependencies {
+                implementation(libs.wrappers.browser)
+            }
         }
     }
 }
@@ -103,9 +112,13 @@ room {
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
     add("kspAndroid", libs.androidx.room.compiler)
-    add("kspIosArm64", libs.androidx.room.compiler)
-    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
-    add("kspJvm", libs.androidx.room.compiler)
+    
+    val isAndroidOnly = !(findPublishingProperty("publishTarget") ?: "android").equals("all", ignoreCase = true)
+    if (!isAndroidOnly) {
+        add("kspIosArm64", libs.androidx.room.compiler)
+        add("kspIosSimulatorArm64", libs.androidx.room.compiler)
+        add("kspJvm", libs.androidx.room.compiler)
+    }
 }
 
 fun findPublishingProperty(name: String): String? {
@@ -132,16 +145,6 @@ fun findPublishingProperty(name: String): String? {
 }
 
 afterEvaluate {
-    val target = findPublishingProperty("publishTarget") ?: "android"
-    if (!target.equals("all", ignoreCase = true)) {
-        val publicationsToRemove = publishing.publications.filter { publication ->
-            !publication.name.contains(target, ignoreCase = true)
-        }
-        publicationsToRemove.forEach {
-            publishing.publications.remove(it)
-        }
-    }
-
     publishing {
         publications {
             withType<MavenPublication> {
