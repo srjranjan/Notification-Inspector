@@ -28,12 +28,12 @@ object NotificationBannerEngine {
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Dynamically resolve host app's launcher Activity (100% generic)
-        val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+        // Target the library's InspectorActivity directly
+        val launchIntent = Intent(context, InspectorActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
 
-        val pendingIntent = launchIntent?.let {
+        val pendingIntent = launchIntent.let {
             val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             } else {

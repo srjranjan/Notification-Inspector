@@ -7,6 +7,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
+import android.content.Intent
+import com.srj.notificationinspector.ui.InspectorActivity
+
 actual typealias PlatformNotificationPayload = RemoteMessage
 
 actual class NotificationInspector actual constructor(private val context: PlatformContext) {
@@ -32,5 +35,12 @@ actual class NotificationInspector actual constructor(private val context: Platf
             // Trigger native Android system drawer notification banner passing native Context
             NotificationBannerEngine.showSystemDrawer(context.androidContext, title, body)
         }
+    }
+
+    actual fun launch() {
+        val intent = Intent(context.androidContext, InspectorActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        context.androidContext.startActivity(intent)
     }
 }

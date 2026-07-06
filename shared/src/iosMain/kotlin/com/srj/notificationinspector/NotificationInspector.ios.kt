@@ -38,4 +38,8 @@ actual class NotificationInspector actual constructor(private val context: Platf
             )
         }
     }
+
+    actual fun launch() {
+        // No-op for iOS (UI hosting can be done manually in SwiftUI / ComposeViewController)
+    }
 }

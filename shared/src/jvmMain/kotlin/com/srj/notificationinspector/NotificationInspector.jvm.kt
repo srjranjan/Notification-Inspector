@@ -6,4 +6,8 @@ actual class NotificationInspector actual constructor(context: PlatformContext) 
     actual fun capture(message: Any) {
         // No-op stub for JVM/Desktop target
     }
+
+    actual fun launch() {
+        // No-op stub for JVM/Desktop target
+    }
 }

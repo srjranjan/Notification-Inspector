@@ -82,6 +82,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.firebase.messaging)
+            implementation(libs.androidx.activity.compose)
         }
 
         commonMain.dependencies {
