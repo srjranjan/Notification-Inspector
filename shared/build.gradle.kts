@@ -112,13 +112,18 @@ room {
 
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
-    add("kspAndroid", libs.androidx.room.compiler)
     
     val isAndroidOnly = !(findPublishingProperty("publishTarget") ?: "android").equals("all", ignoreCase = true)
-    if (!isAndroidOnly) {
-        add("kspIosArm64", libs.androidx.room.compiler)
-        add("kspIosSimulatorArm64", libs.androidx.room.compiler)
-        add("kspJvm", libs.androidx.room.compiler)
+    
+    configurations.configureEach {
+        if (name.startsWith("kspAndroid", ignoreCase = true) || name.startsWith("kspSharedAndroid", ignoreCase = true)) {
+            project.dependencies.add(name, libs.androidx.room.compiler)
+        }
+        if (!isAndroidOnly) {
+            if (name.startsWith("kspIos", ignoreCase = true) || name.startsWith("kspJvm", ignoreCase = true)) {
+                project.dependencies.add(name, libs.androidx.room.compiler)
+            }
+        }
     }
 }
 
