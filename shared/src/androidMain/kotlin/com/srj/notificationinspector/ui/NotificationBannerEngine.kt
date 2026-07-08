@@ -9,9 +9,10 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 
 object NotificationBannerEngine {
-    private const val CHANNEL_ID = "notification_inspector_channel"
+    private const val CHANNEL_ID = "notification_inspector_channel_silent"
     private const val CHANNEL_NAME = "Notification Inspector Logs"
-    private const val NOTIFICATION_ID = 4821
+    private const val SUMMARY_ID = 4820
+    private const val GROUP_KEY = "com.srj.notificationinspector.LOG_GROUP"
 
     fun showSystemDrawer(context: Context, title: String?, body: String?) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -21,7 +22,7 @@ object NotificationBannerEngine {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "Shows intercepted push notifications on-device"
             }
@@ -44,11 +45,16 @@ object NotificationBannerEngine {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(iconRes)
-            .setContentTitle(title ?: "Interception Triggered 🔔")
-            .setContentText(body ?: "A new push notification has been logged.")
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setContentTitle("Notification Intercepted 🔔")
+            .setContentText(title ?: body ?: "A new push notification has been logged.")
+            .setStyle(NotificationCompat.BigTextStyle().bigText(
+                listOfNotNull(title, body)
+                    .filter { it.isNotBlank() }
+                    .joinToString("\n")
+            ))
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setSilent(true)
+            .setGroup(GROUP_KEY)
             .setAutoCancel(true)
             .apply {
                 if (pendingIntent != null) {
@@ -57,6 +63,26 @@ object NotificationBannerEngine {
             }
             .build()
 
-        notificationManager.notify(NOTIFICATION_ID, notification)
+        val summaryNotification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(iconRes)
+            .setContentTitle("Intercepted Notifications")
+            .setContentText("New logs intercepted")
+            .setStyle(NotificationCompat.InboxStyle()
+                .setSummaryText("Notification Inspector"))
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setSilent(true)
+            .setGroup(GROUP_KEY)
+            .setGroupSummary(true)
+            .setAutoCancel(true)
+            .apply {
+                if (pendingIntent != null) {
+                    setContentIntent(pendingIntent)
+                }
+            }
+            .build()
+
+        val uniqueId = (System.currentTimeMillis() and 0x7FFFFFFF).toInt()
+        notificationManager.notify(uniqueId, notification)
+        notificationManager.notify(SUMMARY_ID, summaryNotification)
     }
 }
