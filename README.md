@@ -1,35 +1,242 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM).
+# Notification Inspector 🔔
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
-
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
-
-### Running the apps
-
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
-
-- Android app: `./gradlew :androidApp:assembleDebug`
-- Desktop app:
-  - Hot reload: `./gradlew :desktopApp:hotRun --auto`
-  - Standard run: `./gradlew :desktopApp:run`
-- Web app:
-  - Wasm target (faster, modern browsers): `./gradlew :webApp:wasmJsBrowserDevelopmentRun`
-  - JS target (slower, supports older browsers): `./gradlew :webApp:jsBrowserDevelopmentRun`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+<p align="center">
+  <a href="https://kotlinlang.org/docs/multiplatform.html">
+    <img src="https://img.shields.io/badge/Kotlin-Multiplatform-blue.svg?style=flat-square&logo=kotlin" alt="Kotlin Multiplatform" />
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20JVM%20%7C%20JS%20%7C%20Wasm-orange.svg?style=flat-square" alt="Platform Support" />
+  </a>
+  <a href="https://search.maven.org/artifact/io.github.srjranjan/shared">
+    <img src="https://img.shields.io/maven-central/v/io.github.srjranjan/shared.svg?label=Maven%20Central&style=flat-square" alt="Maven Central" />
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square" alt="License" />
+  </a>
+</p>
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
+## 🚀 Introduction
 
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+**Notification Inspector** is a lightweight, pure Kotlin Multiplatform (KMP) library designed to capture, log, and inspect push notification payloads directly on-device. Supporting **Android, iOS, JVM (Desktop), JavaScript, and WebAssembly**, it provides developers with an interactive, on-device UI console to monitor and audit Firebase Cloud Messages (FCM) or Apple Push Notifications (APNs) in real-time, greatly accelerating the development and QA cycle.
+
+---
+
+## 📱 Platform Support & Compatibility
+
+| Platform | Support Status | Payload Type | Features |
+| :--- | :--- | :--- | :--- |
+| **Android** (API 21+) | ✅ Fully Implemented | `RemoteMessage` (FCM) | Auto-interception, Standalone Activity UI, Room SQLite DB |
+| **iOS** (iOS 12+) | ✅ Fully Implemented | `NSDictionary` (APNs) | Auto-interception, Embeddable SwiftUI Component, Room SQLite DB |
+| **JVM (Desktop)** | 🚧 Work In Progress | `Any` | Coming Soon (no-op stub) |
+| **JavaScript (JS)** | 🚧 Work In Progress | `Any` | Coming Soon (no-op stub) |
+| **WebAssembly (Wasm)** | 🚧 Work In Progress | `Any` | Coming Soon (no-op stub) |
+
+---
+
+## 🎯 Why It's Needed (The Problem It Solves)
+
+Debugging push notifications is historically a tedious process. Developers typically have to search through verbose IDE system logs (Logcat/Xcode console), set up complex local proxy tools (Charles, Proxyman), or rely on backend logs to verify that payload properties are being delivered correctly. 
+
+Moreover, keeping debugging code and log history in production builds poses significant security risks. 
+
+**Notification Inspector** solves this elegantly by providing:
+* **Direct Interception**: It hooks into platform-level push handlers (`RemoteMessage` on Android, `NSDictionary` on iOS) to automatically extract and format payloads.
+* **On-Device Console**: Built using Compose Multiplatform, the inspector database and console UI let you view, search, and parse payloads directly on the testing device.
+* **No-Op Production Safety**: A matching `shared-no-op` library variant is provided. By swapping dependencies in production, all database code, notification interceptors, and UI components are completely stripped out, achieving zero overhead and total security.
+
+---
+
+## 💡 Use Cases
+
+* 🔍 **On-Device Payload Auditing**: Quickly inspect the exact raw JSON structure of push notifications on physical devices without needing server access or CLI tools.
+* 🌳 **Interactive Tree-Folding JSON View**: Parse complex, nested payload dictionaries through a clean, hierarchical tree-view with collapsible nodes.
+* 📂 **Persistent Notification Log History**: Automatically persist notification payloads locally using a Room SQLite database, allowing inspection of historical logs across application restarts.
+* 🛡️ **Zero-Footprint Releases**: Easily isolate the debug console to development/staging builds using the no-op variant to prevent leaks in production.
+
+---
+
+## 📦 Installation & Setup
+
+### A. Kotlin Multiplatform / Android (via Maven Central)
+
+Add the dependency to your shared/common module's `build.gradle.kts` file:
+
+```kotlin
+sourceSets {
+    commonMain.dependencies {
+        // Debug configuration uses the full inspector library
+        implementation("io.github.srjranjan:shared:1.0.9")
+    }
+}
+```
+
+To automatically isolate the inspector to development builds and use the safe no-op implementation in production, declare the dependencies conditionally inside your Android application module's `build.gradle.kts`:
+
+```kotlin
+dependencies {
+    // Standard debug builds contain the inspector UI and Room DB
+    debugImplementation("io.github.srjranjan:shared:1.0.9")
+    
+    // Release builds compile against the empty no-op variant
+    releaseImplementation("io.github.srjranjan:shared-no-op:1.0.9")
+}
+```
+
+### B. Native iOS (via Swift Package Manager)
+
+For native iOS apps or when linking the shared framework directly via Swift Package Manager in Xcode:
+
+1. In Xcode, navigate to **File** -> **Add Packages...**
+2. Enter the repository URL: `https://github.com/srjranjan/Notification-Inspector`
+3. Define your package dependency rule (e.g., Up to Next Major **1.0.9** or select the `main` branch).
+
+---
+
+## 🛠️ How to Use
+
+### 1. Kotlin Example (Common & Android Layer)
+
+#### Initializing the Inspector
+Create an instance of `NotificationInspector` by passing a `PlatformContext`. On Android, this requires the application/activity context, whereas on other platforms it requires no arguments:
+
+```kotlin
+import com.srj.notificationinspector.NotificationInspector
+import com.srj.notificationinspector.PlatformContext
+
+// Android Initialization (typically in Application, Activity, or Service)
+val platformContext = PlatformContext(androidContext)
+val inspector = NotificationInspector(platformContext)
+
+// iOS / JVM / Desktop Initialization
+val platformContext = PlatformContext()
+val inspector = NotificationInspector(platformContext)
+```
+
+#### Intercepting FCM Payloads (Android)
+To automatically record incoming notifications, capture them inside your `FirebaseMessagingService`:
+
+```kotlin
+import com.google.firebase.messaging.FirebaseMessagingService
+import com.google.firebase.messaging.RemoteMessage
+
+class MyFirebaseMessagingService : FirebaseMessagingService() {
+    private lateinit var inspector: NotificationInspector
+
+    override fun onCreate() {
+        super.onCreate()
+        inspector = NotificationInspector(PlatformContext(applicationContext))
+    }
+
+    override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        // Captures, parses, and logs the payload
+        inspector.capture(remoteMessage)
+        
+        // Handle your message rendering here...
+    }
+}
+```
+
+#### Launching the Inspector UI (Android)
+Launch the standalone Inspector console Activity from anywhere in your debug menu or shake detector:
+
+```kotlin
+// Launches InspectorActivity which hosts the Compose Multiplatform UI
+inspector.launch()
+```
+
+#### Embedding the Composable UI
+If you want to host the logs UI inside your own custom settings or debug Composable, use `NotificationInspectorApp` directly:
+
+```kotlin
+import com.srj.notificationinspector.ui.NotificationInspectorApp
+import com.srj.notificationinspector.getNotificationRepository
+
+@Composable
+fun DebugConsoleScreen(context: PlatformContext) {
+    val repository = remember(context) { getNotificationRepository(context) }
+    
+    NotificationInspectorApp(
+        repository = repository,
+        onClose = { /* Handle navigation back */ }
+    )
+}
+```
+
+---
+
+### 2. Swift Example (iOS / SwiftUI Layer)
+
+On iOS, push notification payloads are received as `NSDictionary`. You can intercept them inside your AppDelegate and display the interface in SwiftUI.
+
+#### Intercepting APNs Push Payloads
+Add payload interception to your `UNUserNotificationCenterDelegate` implementation:
+
+```swift
+import Shared
+import UserNotifications
+
+class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    private let inspector = NotificationInspector(context: PlatformContext())
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        
+        // Convert APNs userInfo payload to NSDictionary
+        let userInfo = response.notification.request.content.userInfo as NSDictionary
+        
+        // Record and parse payload
+        inspector.capture(message: userInfo)
+        
+        completionHandler()
+    }
+}
+```
+
+#### Presenting the Console in SwiftUI
+Wrap the exported Compose View Controller inside `UIViewControllerRepresentable` and display it in a sheet or navigation view:
+
+```swift
+import SwiftUI
+import Shared
+
+// Wrap the Compose controller for SwiftUI
+struct NotificationInspectorView: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> UIViewController {
+        // MainViewController is generated by the shared KMP library
+        return MainViewControllerKt.MainViewController()
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
+
+// Host it in your debug settings
+struct DebugSettingsMenu: View {
+    @State private var isInspectorOpen = false
+
+    var body: some View {
+        VStack {
+            Button(action: { isInspectorOpen = true }) {
+                Label("Open Notification Inspector", systemImage: "bell.badge.fill")
+                    .font(.headline)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+            }
+        }
+        .sheet(isPresented: $isInspectorOpen) {
+            NotificationInspectorView()
+                .edgesIgnoringSafeArea(.all)
+        }
+    }
+}
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for details.
