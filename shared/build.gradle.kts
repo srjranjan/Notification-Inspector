@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "io.github.srjranjan"
-version = "1.0.9"
+version = "1.0.10"
 
 kotlin {
     val isAndroidOnly = !(findPublishingProperty("publishTarget") ?: "android").equals("all", ignoreCase = true)
