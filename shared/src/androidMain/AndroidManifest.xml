@@ -5,6 +5,8 @@
         <activity
             android:name="com.srj.notificationinspector.ui.InspectorActivity"
             android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.srj.notificationinspector.inspector"
             android:theme="@android:style/Theme.DeviceDefault.NoActionBar" />
     </application>
 </manifest>
