@@ -19,7 +19,7 @@
 
 ## 🚀 Introduction
 
-**Notification Inspector** is a lightweight, pure Kotlin Multiplatform (KMP) library designed to capture, log, and inspect push notification payloads directly on-device. Supporting **Android, iOS, JVM (Desktop), JavaScript, and WebAssembly**, it provides developers with an interactive, on-device UI console to monitor and audit Firebase Cloud Messages (FCM) or Apple Push Notifications (APNs) in real-time, greatly accelerating the development and QA cycle.
+**Notification Inspector** is a lightweight, pure Kotlin Multiplatform (KMP) on-device DevTools for push notifications, designed to capture, log, and inspect push notification payloads directly on-device. Supporting **Android, iOS, JVM (Desktop), JavaScript, and WebAssembly**, it provides developers with an interactive, on-device UI console to monitor and audit Firebase Cloud Messages (FCM) or Apple Push Notifications (APNs) in real-time, greatly accelerating the development and QA cycle.
 
 ---
 
