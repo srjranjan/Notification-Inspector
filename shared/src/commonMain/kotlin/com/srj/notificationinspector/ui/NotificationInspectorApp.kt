@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.srj.notificationinspector.model.NotificationLog
 import com.srj.notificationinspector.repository.NotificationRepository
+import com.srj.notificationinspector.theme.NotificationInspectorTheme
 
 sealed interface InspectorScreen {
     object ListScreen : InspectorScreen
@@ -25,22 +26,11 @@ fun NotificationInspectorApp(
 ) {
     var currentScreen by remember { mutableStateOf<InspectorScreen>(InspectorScreen.ListScreen) }
 
-    // Define Dark Material 3 theme palette
-    val darkColorScheme = darkColorScheme(
-        primary = Color(0xFF38BDF8), // Light Sky Blue
-        primaryContainer = Color(0xFF0F172A), // Slate 900
-        secondary = Color(0xFF0EA5E9),
-        background = Color(0xFF0F172A),
-        surface = Color(0xFF1E293B), // Slate 800
-        onBackground = Color.White,
-        onSurface = Color.White
-    )
-
-    MaterialTheme(colorScheme = darkColorScheme) {
+    NotificationInspectorTheme {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF0F172A))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             when (val screen = currentScreen) {
                 is InspectorScreen.ListScreen -> {

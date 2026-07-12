@@ -6,11 +6,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -21,12 +27,15 @@ import com.srj.notificationinspector.model.NotificationLog
 import com.srj.notificationinspector.parser.JsonNode
 import com.srj.notificationinspector.parser.JsonParser
 import com.srj.notificationinspector.parser.JsonValueType
+import com.srj.notificationinspector.theme.*
+import com.srj.notificationinspector.util.Util.toSp
+import org.jetbrains.compose.resources.vectorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationDetailScreen(
     log: NotificationLog,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
 ) {
     val clipboardManager = LocalClipboardManager.current
     var isAllExpanded by remember { mutableStateOf(true) }
@@ -52,10 +61,10 @@ fun NotificationDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Log Details", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+                title = { Text("Log Details", fontSize = 18.dp.toSp(), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    TextButton(onClick = onNavigateBack) {
-                        Text("< Back", color = Color(0xFF38BDF8), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    IconButton(onClick = { onNavigateBack() }) {
+                        Icon(imageVector = Icons.Default.ArrowBackIosNew, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -64,18 +73,21 @@ fun NotificationDetailScreen(
                         toggleAllExpansion(rootNode, isAllExpanded)
                         refreshTrigger++
                     }) {
-                        Text(if (isAllExpanded) "Collapse All" else "Expand All", color = MaterialTheme.colorScheme.primary)
+                        Text(
+                            if (isAllExpanded) "Collapse All" else "Expand All",
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                     TextButton(onClick = {
                         clipboardManager.setText(AnnotatedString(log.rawPayload))
                     }) {
-                        Text("Copy Raw")
+                        Text("Copy Raw", color = MaterialTheme.colorScheme.primary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF0F172A),
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -83,7 +95,7 @@ fun NotificationDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF0F172A))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
@@ -91,27 +103,27 @@ fun NotificationDetailScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = log.title ?: "No Title",
-                            fontSize = 18.sp,
+                            fontSize = 18.dp.toSp(),
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = log.body ?: "No Body",
-                            fontSize = 14.sp,
-                            color = Color(0xFF94A3B8)
+                            fontSize = 14.dp.toSp(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Timestamp: ${formatTimestamp(log.timestamp)}",
-                            fontSize = 12.sp,
-                            color = Color(0xFF64748B),
+                            fontSize = 12.dp.toSp(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                             fontFamily = FontFamily.Monospace
                         )
                     }
@@ -122,19 +134,20 @@ fun NotificationDetailScreen(
             item {
                 Text(
                     text = "PAYLOAD",
-                    fontSize = 12.sp,
+                    fontSize = 12.dp.toSp(),
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
 
             // Interactive JSON AST Tree Renderer
             item {
+                val isDark = MaterialTheme.colorScheme.background == BackgroundDark
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF1E293B), RoundedCornerShape(8.dp))
+                        .background(if (isDark) CodeBlockDark else CodeBlockLight, RoundedCornerShape(8.dp))
                         .padding(12.dp)
                 ) {
                     key(refreshTrigger) {
@@ -143,12 +156,20 @@ fun NotificationDetailScreen(
                 }
             }
         }
+        Spacer(Modifier.height(40.dp))
     }
 }
 
 @Composable
 fun JsonTreeRenderer(node: JsonNode) {
     val indentation = (12 * node.depth).dp
+    val isDark = MaterialTheme.colorScheme.background == BackgroundDark
+
+    val keyColor = if (isDark) Color(0xFF9CDCFE) else JsonKeyLight
+    val stringColor = if (isDark) Color(0xFFCE9178) else JsonStringLight
+    val numberColor = if (isDark) Color(0xFFB5CEA8) else JsonNumberLight
+    val booleanColor = if (isDark) Color(0xFF569CD6) else JsonBooleanLight
+    val nullColor = if (isDark) Color(0xFF569CD6) else JsonNullLight
 
     when (node) {
         is JsonNode.LeafNode -> {
@@ -165,24 +186,25 @@ fun JsonTreeRenderer(node: JsonNode) {
                 )
                 Text(
                     text = "\"${node.key}\": ",
-                    color = Color(0xFF9CDCFE),
+                    color = keyColor,
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 13.sp,
+                    fontSize = 13.dp.toSp(),
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = if (node.valueType == JsonValueType.STRING) "\"${node.value}\"" else node.value,
                     color = when (node.valueType) {
-                        JsonValueType.STRING -> Color(0xFFCE9178)
-                        JsonValueType.NUMBER -> Color(0xFFB5CEA8)
-                        JsonValueType.BOOLEAN -> Color(0xFF569CD6)
-                        JsonValueType.NULL -> Color(0xFF569CD6)
+                        JsonValueType.STRING -> stringColor
+                        JsonValueType.NUMBER -> numberColor
+                        JsonValueType.BOOLEAN -> booleanColor
+                        JsonValueType.NULL -> nullColor
                     },
                     fontFamily = FontFamily.Monospace,
                     fontSize = 13.sp
                 )
             }
         }
+
         is JsonNode.CollapsibleNode -> {
             var localExpanded by remember(node, node.isExpanded) { mutableStateOf(node.isExpanded) }
             val bracketOpen = if (node.isObject) "{" else "["
@@ -199,23 +221,23 @@ fun JsonTreeRenderer(node: JsonNode) {
                 ) {
                     Text(
                         text = if (localExpanded) "▼" else "▶",
-                        color = Color(0xFF64748B),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 11.sp,
+                        fontSize = 11.dp.toSp(),
                         modifier = Modifier.width(16.dp),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                     Text(
                         text = "\"${node.key}\": $bracketOpen",
-                        color = Color(0xFFD4D4D4),
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 13.sp,
+                        fontSize = 13.dp.toSp(),
                         fontWeight = FontWeight.SemiBold
                     )
                     if (!localExpanded) {
                         Text(
                             text = " ... $bracketClose",
-                            color = Color(0xFF64748B),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             fontFamily = FontFamily.Monospace,
                             fontSize = 13.sp
                         )
@@ -229,9 +251,9 @@ fun JsonTreeRenderer(node: JsonNode) {
                         }
                         Text(
                             text = bracketClose,
-                            color = Color(0xFFD4D4D4),
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontFamily = FontFamily.Monospace,
-                            fontSize = 13.sp,
+                            fontSize = 13.dp.toSp(),
                             modifier = Modifier.padding(start = indentation + 16.dp)
                         )
                     }
