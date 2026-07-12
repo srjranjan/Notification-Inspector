@@ -13,7 +13,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.srj.notificationinspector.theme.NotificationInspectorTheme
 import com.srj.notificationinspector.ui.NotificationInspectorApp
+import com.srj.notificationinspector.util.Util.toSp
+import com.sun.tools.javac.jvm.ByteCodes.lor
 import kotlinx.coroutines.launch
 
 @Composable
@@ -95,7 +98,7 @@ fun App(context: PlatformContext) {
         Scaffold(
             bottomBar = {
                 BottomAppBar(
-                    containerColor = Color(0xFF1E293B),
+                    containerColor = MaterialTheme.colorScheme.background,
                     contentPadding = PaddingValues(16.dp)
                 ) {
                     Button(
@@ -108,79 +111,87 @@ fun App(context: PlatformContext) {
                 }
             }
         ) { padding ->
-            Box(modifier = Modifier.padding(padding)) {
+
+            Box(modifier = Modifier.fillMaxSize()) {
                 NotificationInspectorApp(repository = repository)
             }
         }
-    } else {
-        MaterialTheme(
-            colorScheme = darkColorScheme(
-                primary = Color(0xFF38BDF8),
-                background = Color(0xFF0F172A),
-                surface = Color(0xFF1E293B)
-            )
+        return
+    }
+
+
+    NotificationInspectorTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFF0F172A)),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier.padding(24.dp).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp).fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                Text(
+                    text = "🔔\nNotification Inspector\nSimulation Deck",
+                    fontSize = 24.dp.toSp(),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 32.sp
+                )
+
+                Text(
+                    text = "Simulate and intercept push notification payloads directly on your device, view logs in real-time, and inspect JSON with collapsible tree folding.",
+                    fontSize = 14.dp.toSp(),
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Simulated Interception Card Button
+                Button(
+                    onClick = {
+                        val mock = mockPayloads[mockIndex]
+                        coroutineScope.launch {
+                            repository.insertLog(
+                                title = mock.first,
+                                body = mock.second,
+                                rawPayload = mock.third
+                            )
+                        }
+                        mockIndex = (mockIndex + 1) % mockPayloads.size
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = "🔔\nNotification Inspector\nSimulation Deck",
-                        fontSize = 24.sp,
+                        "Simulate Intercept Push 🚀",
+                        fontSize = 16.dp.toSp(),
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 32.sp
+                        color = Color.White
                     )
+                }
 
+                // Open Inspector Interface Button
+                Button(
+                    onClick = { showInspector = true },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
                     Text(
-                        text = "Simulate and intercept push notification payloads directly on your device, view logs in real-time, and inspect JSON with collapsible tree folding.",
-                        fontSize = 14.sp,
-                        color = Color(0xFF94A3B8),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 8.dp)
+                        "Open Inspector Console 🔍",
+                        fontSize = 16.dp.toSp(),
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Simulated Interception Card Button
-                    Button(
-                        onClick = {
-                            val mock = mockPayloads[mockIndex]
-                            coroutineScope.launch {
-                                repository.insertLog(
-                                    title = mock.first,
-                                    body = mock.second,
-                                    rawPayload = mock.third
-                                )
-                            }
-                            mockIndex = (mockIndex + 1) % mockPayloads.size
-                        },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Simulate Intercept Push 🚀", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    }
-
-                    // Open Inspector Interface Button
-                    Button(
-                        onClick = { showInspector = true },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8)),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Open Inspector Console 🔍", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                    }
                 }
             }
         }
     }
+
 }

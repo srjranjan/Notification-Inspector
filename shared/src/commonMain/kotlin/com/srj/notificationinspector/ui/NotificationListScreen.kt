@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.srj.notificationinspector.model.NotificationLog
 import com.srj.notificationinspector.repository.NotificationRepository
+import com.srj.notificationinspector.theme.*
 import com.srj.notificationinspector.ui.formatTimestamp
 import io.github.srjranjan.shared.generated.resources.Res
 import io.github.srjranjan.shared.generated.resources.ic_logo
@@ -62,6 +67,25 @@ fun NotificationListScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = {
+                        ThemeSettings.themeMode = when (ThemeSettings.themeMode) {
+                            ThemeMode.SYSTEM -> ThemeMode.LIGHT
+                            ThemeMode.LIGHT -> ThemeMode.DARK
+                            ThemeMode.DARK -> ThemeMode.SYSTEM
+                        }
+                    }) {
+                        val icon = when (ThemeSettings.themeMode) {
+                            ThemeMode.SYSTEM -> Icons.Default.BrightnessAuto
+                            ThemeMode.LIGHT -> Icons.Default.LightMode
+                            ThemeMode.DARK -> Icons.Default.DarkMode
+                        }
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = "Change Theme",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
                     TextButton(onClick = {
                         coroutineScope.launch {
                             repository.clearAllLogs()
@@ -71,8 +95,8 @@ fun NotificationListScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF0F172A),
-                    titleContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -80,7 +104,7 @@ fun NotificationListScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF0F172A))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
@@ -91,7 +115,7 @@ fun NotificationListScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 12.dp),
-                placeholder = { Text("Search logs...", color = Color(0xFF64748B)) },
+                placeholder = { Text("Search logs...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                 leadingIcon = {
                     Text(
                         text = "🔍",
@@ -101,12 +125,12 @@ fun NotificationListScreen(
                 },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedContainerColor = Color(0xFF1E293B),
-                    unfocusedContainerColor = Color(0xFF1E293B),
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = Color(0xFF334155),
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                     cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 singleLine = true
@@ -157,7 +181,7 @@ fun LogCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
@@ -172,7 +196,7 @@ fun LogCard(
                     text = log.title ?: "No Title",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f).padding(end = 8.dp),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -180,7 +204,7 @@ fun LogCard(
                 Text(
                     text = formatTimestamp(log.timestamp).substringAfter(" "),
                     fontSize = 11.sp,
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                     fontFamily = FontFamily.Monospace
                 )
             }
@@ -188,7 +212,7 @@ fun LogCard(
             Text(
                 text = log.body ?: "No Body",
                 fontSize = 13.sp,
-                color = Color(0xFF94A3B8),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
