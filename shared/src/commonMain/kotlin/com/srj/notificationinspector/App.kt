@@ -95,8 +95,14 @@ fun App(context: PlatformContext) {
     var mockIndex by remember { mutableIntStateOf(0) }
 
     if (showInspector) {
-        Scaffold(
-            bottomBar = {
+        NotificationInspectorTheme {
+            Column {
+
+                Box(modifier = Modifier.fillMaxSize().weight(1f)) {
+                    NotificationInspectorApp(repository = repository) {
+                        showInspector = false
+                    }
+                }
                 BottomAppBar(
                     containerColor = MaterialTheme.colorScheme.background,
                     contentPadding = PaddingValues(16.dp)
@@ -106,14 +112,13 @@ fun App(context: PlatformContext) {
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
-                        Text("Return to Simulation Dashboard", color = Color.Black, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Return to Simulation Dashboard",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
-            }
-        ) { padding ->
-
-            Box(modifier = Modifier.fillMaxSize()) {
-                NotificationInspectorApp(repository = repository)
             }
         }
         return
