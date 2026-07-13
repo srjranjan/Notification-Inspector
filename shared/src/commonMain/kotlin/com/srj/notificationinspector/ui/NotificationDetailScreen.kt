@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.*
@@ -30,6 +31,7 @@ import com.srj.notificationinspector.parser.JsonValueType
 import com.srj.notificationinspector.theme.*
 import com.srj.notificationinspector.util.Util.toSp
 import org.jetbrains.compose.resources.vectorResource
+import java.awt.SystemColor.text
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,20 +70,10 @@ fun NotificationDetailScreen(
                     }
                 },
                 actions = {
-                    TextButton(onClick = {
-                        isAllExpanded = !isAllExpanded
-                        toggleAllExpansion(rootNode, isAllExpanded)
-                        refreshTrigger++
-                    }) {
-                        Text(
-                            if (isAllExpanded) "Collapse All" else "Expand All",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    TextButton(onClick = {
-                        clipboardManager.setText(AnnotatedString(log.rawPayload))
-                    }) {
-                        Text("Copy Raw", color = MaterialTheme.colorScheme.primary)
+                    IconButton(
+                        onClick = { clipboardManager.setText(AnnotatedString(log.rawPayload)) }
+                    ) {
+                        Icon(imageVector = Icons.Default.CopyAll, contentDescription = "Copy")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -132,13 +124,25 @@ fun NotificationDetailScreen(
 
             // Payload Label
             item {
-                Text(
-                    text = "PAYLOAD",
-                    fontSize = 12.dp.toSp(),
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "PAYLOAD",
+                        fontSize = 12.dp.toSp(),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.weight(1f)
+                    )
+                    TextButton(onClick = {
+                        isAllExpanded = !isAllExpanded
+                        toggleAllExpansion(rootNode, isAllExpanded)
+                        refreshTrigger++
+                    },) {
+                        Text(
+                            if (isAllExpanded) "Collapse All" else "Expand All",
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
 
             // Interactive JSON AST Tree Renderer
@@ -200,7 +204,7 @@ fun JsonTreeRenderer(node: JsonNode) {
                         JsonValueType.NULL -> nullColor
                     },
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 13.sp
+                    fontSize = 13.dp.toSp()
                 )
             }
         }
@@ -239,7 +243,7 @@ fun JsonTreeRenderer(node: JsonNode) {
                             text = " ... $bracketClose",
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             fontFamily = FontFamily.Monospace,
-                            fontSize = 13.sp
+                            fontSize = 13.dp.toSp()
                         )
                     }
                 }

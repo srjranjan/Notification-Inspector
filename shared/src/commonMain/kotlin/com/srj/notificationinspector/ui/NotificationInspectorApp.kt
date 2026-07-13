@@ -1,5 +1,6 @@
 package com.srj.notificationinspector.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,11 +35,17 @@ fun NotificationInspectorApp(
         ) {
             when (val screen = currentScreen) {
                 is InspectorScreen.ListScreen -> {
+                    if (onClose != null) {
+                        BackHandler {
+                            onClose()
+                        }
+                    }
+
                     NotificationListScreen(
                         repository = repository,
                         onNavigateToDetail = { id ->
                             currentScreen = InspectorScreen.DetailScreen(id)
-                        }
+                        },
                     )
                 }
                 is InspectorScreen.DetailScreen -> {
@@ -47,6 +54,9 @@ fun NotificationInspectorApp(
                     // Fetch log by ID inside a LaunchedEffect reactively
                     LaunchedEffect(screen.logId) {
                         selectedLog = repository.getLogById(screen.logId)
+                    }
+                    BackHandler {
+                        currentScreen = InspectorScreen.ListScreen
                     }
 
                     val log = selectedLog
