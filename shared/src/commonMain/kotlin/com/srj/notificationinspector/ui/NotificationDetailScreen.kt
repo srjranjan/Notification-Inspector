@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,6 +39,7 @@ import java.awt.SystemColor.text
 fun NotificationDetailScreen(
     log: NotificationLog,
     onNavigateBack: () -> Unit,
+    onReplay: ((NotificationLog) -> Unit)? = null,
 ) {
     val clipboardManager = LocalClipboardManager.current
     var isAllExpanded by remember { mutableStateOf(true) }
@@ -70,6 +72,13 @@ fun NotificationDetailScreen(
                     }
                 },
                 actions = {
+                    if (onReplay != null) {
+                        IconButton(
+                            onClick = { onReplay(log) }
+                        ) {
+                            Icon(imageVector = Icons.Default.Replay, contentDescription = "Replay")
+                        }
+                    }
                     IconButton(
                         onClick = { clipboardManager.setText(AnnotatedString(log.rawPayload)) }
                     ) {

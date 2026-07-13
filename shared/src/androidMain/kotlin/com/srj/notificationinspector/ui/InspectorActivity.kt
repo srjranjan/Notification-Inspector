@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.toArgb
+import com.srj.notificationinspector.NotificationInspector
 import com.srj.notificationinspector.PlatformContext
 import com.srj.notificationinspector.getNotificationRepository
 import com.srj.notificationinspector.theme.DarkColorScheme
@@ -54,7 +55,10 @@ class InspectorActivity : ComponentActivity() {
 
             NotificationInspectorApp(
                 repository = repository,
-                onClose = { finish() }
+                onClose = { finish() },
+                onReplay = { log ->
+                    NotificationInspector(platformContext).replay(log)
+                }
             )
         }
     }
