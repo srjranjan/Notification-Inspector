@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "io.github.srjranjan"
-version = "1.0.10"
+version = "1.0.11"
 
 kotlin {
     androidLibrary {
