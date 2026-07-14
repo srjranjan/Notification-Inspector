@@ -1,6 +1,7 @@
 package com.srj.notificationinspector.ui
 
 import androidx.compose.runtime.Composable
+import com.srj.notificationinspector.model.NotificationLog
 import com.srj.notificationinspector.repository.NotificationRepository
 
 @Composable

@@ -9,7 +9,7 @@ actual class NotificationInspector actual constructor(context: PlatformContext) 
     actual fun launch() {}
     actual fun replay(log: NotificationLog) {}
 
-    companion object {
+    actual companion object {
         actual var replayListener: NotificationReplayListener? = null
     }
 }
