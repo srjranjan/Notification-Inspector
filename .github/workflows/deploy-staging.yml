@@ -1,4 +1,4 @@
-name: Deploy Staging Alpha to Maven Central
+name: Deploy Staging Alpha 
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 jobs:
   publish-staging:
     runs-on: ubuntu-latest
-    environment: Production
+    environment: Development
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
