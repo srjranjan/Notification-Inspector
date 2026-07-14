@@ -99,7 +99,7 @@ actual class NotificationInspector actual constructor(private val context: Platf
         return resolveInfo.firstOrNull()?.serviceInfo?.name
     }
 
-    companion object {
+    actual companion object {
         actual var replayListener: NotificationReplayListener? = null
     }
 }
