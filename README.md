@@ -268,6 +268,12 @@ NotificationInspector.replayListener = { log ->
 
 ---
 
+## 🤝 Contributing
+
+We welcome contributions of all types! Whether you are reporting a bug, suggesting a new feature, or submitting code changes, please read our [Contributing Guidelines](CONTRIBUTING.md) to get started.
+
+---
+
 ## 📄 License
 
 This project is licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for details.
