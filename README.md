@@ -67,7 +67,7 @@ Add the dependency to your shared/common module's `build.gradle.kts` file:
 sourceSets {
     commonMain.dependencies {
         // Debug configuration uses the full inspector library
-        implementation("io.github.srjranjan:shared:1.0.9")
+        implementation("io.github.srjranjan:shared:1.0.13")
     }
 }
 ```
@@ -77,10 +77,10 @@ To automatically isolate the inspector to development builds and use the safe no
 ```kotlin
 dependencies {
     // Standard debug builds contain the inspector UI and Room DB
-    debugImplementation("io.github.srjranjan:shared:1.0.9")
+    debugImplementation("io.github.srjranjan:shared:1.0.13")
     
     // Release builds compile against the empty no-op variant
-    releaseImplementation("io.github.srjranjan:shared-no-op:1.0.9")
+    releaseImplementation("io.github.srjranjan:shared-no-op:1.0.13")
 }
 ```
 
@@ -90,7 +90,7 @@ For native iOS apps or when linking the shared framework directly via Swift Pack
 
 1. In Xcode, navigate to **File** -> **Add Packages...**
 2. Enter the repository URL: `https://github.com/srjranjan/Notification-Inspector`
-3. Define your package dependency rule (e.g., Up to Next Major **1.0.9** or select the `main` branch).
+3. Define your package dependency rule (e.g., Up to Next Major **1.0.13** or select the `main` branch).
 
 ---
 
