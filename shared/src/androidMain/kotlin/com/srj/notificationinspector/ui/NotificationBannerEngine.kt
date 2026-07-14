@@ -14,7 +14,7 @@ object NotificationBannerEngine {
     private const val SUMMARY_ID = 4820
     private const val GROUP_KEY = "com.srj.notificationinspector.LOG_GROUP"
 
-    fun showSystemDrawer(context: Context, title: String?, body: String?) {
+    fun showSystemDrawer(context: Context, title: String?, body: String?, headerOverride: String? = null) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Create Channel for Android O (API 26+)
@@ -45,7 +45,7 @@ object NotificationBannerEngine {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(iconRes)
-            .setContentTitle("Notification Intercepted 🔔")
+            .setContentTitle(headerOverride ?: "Notification Intercepted 🔔")
             .setContentText(title ?: body ?: "A new push notification has been logged.")
             .setStyle(NotificationCompat.BigTextStyle().bigText(
                 listOfNotNull(title, body)

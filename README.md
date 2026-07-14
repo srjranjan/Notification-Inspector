@@ -237,6 +237,37 @@ struct DebugSettingsMenu: View {
 
 ---
 
+## 🔄 Notification Replay (Push Simulation)
+
+The **Replay** feature allows you to **simulate a native push notification delivery locally** on your device using a previously captured payload. 
+
+Unlike a simple "re-show" of a banner, this feature acts as a **local push injector**. It programmatically re-delivers the exact raw FCM (Android) or APNs (iOS) payload directly back into your application's system entry points. This allows your app's **existing, unmodified push-handling code** (routing, deep-linking, data parsing) to execute naturally as if a real push had arrived from the network.
+
+### 🛠️ How it Works
+
+*   **Android**: The library dynamically discovers your app's `FirebaseMessagingService` and broadcasts a local `com.google.android.c2dm.intent.RECEIVE` intent. This triggers your `onMessageReceived(RemoteMessage)` method programmatically within the same process. No ADB or root required.
+*   **iOS**: The library reconstructs the `NSDictionary` payload and dynamically invokes your App Delegate's `didReceiveRemoteNotification` methods using the Objective-C runtime.
+
+### 🚀 Usage
+
+1.  Open any captured log in the **Notification Inspector UI**.
+2.  Click the **Replay** icon (🔄) in the top action bar.
+3.  Your app will process the notification as if it were just delivered by the system.
+
+#### (Optional) Registering a Replay Listener
+If you need to perform specific debug logic when a replay is triggered, you can register a global listener:
+
+```kotlin
+import com.srj.notificationinspector.NotificationInspector
+
+// Register in your Application class or MainActivity
+NotificationInspector.replayListener = { log ->
+    println("Manual replay triggered for log ID: ${log.id}")
+}
+```
+
+---
+
 ## 📄 License
 
 This project is licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for details.

@@ -23,7 +23,8 @@ sealed interface InspectorScreen {
 @Composable
 fun NotificationInspectorApp(
     repository: NotificationRepository,
-    onClose: (() -> Unit)? = null
+    onClose: (() -> Unit)? = null,
+    onReplay: ((NotificationLog) -> Unit)? = null
 ) {
     var currentScreen by remember { mutableStateOf<InspectorScreen>(InspectorScreen.ListScreen) }
 
@@ -65,7 +66,8 @@ fun NotificationInspectorApp(
                             log = log,
                             onNavigateBack = {
                                 currentScreen = InspectorScreen.ListScreen
-                            }
+                            },
+                            onReplay = onReplay
                         )
                     } else {
                         // Display a sleek loading indicator while the DB fetches the log record
