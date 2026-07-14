@@ -1,0 +1,36 @@
+name: Deploy Production Release to Maven Central
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish-production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+          cache: 'gradle'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Decode GPG Secret Key
+        run: |
+          echo "${{ secrets.GPG_SECRET_KEY_BASE64 }}" | base64 --decode > secring.gpg
+
+      - name: Publish Production Release
+        run: |
+          ./gradlew publishAllPublicationsToCentralPortal \
+            -Psigning.keyId="${{ secrets.GPG_KEY_ID }}" \
+            -Psigning.password="${{ secrets.GPG_PASSWORD }}" \
+            -Psigning.secretKeyRingFile="secring.gpg" \
+            -PmavenCentralUsername="${{ secrets.MAVEN_CENTRAL_USERNAME }}" \
+            -PmavenCentralPassword="${{ secrets.MAVEN_CENTRAL_PASSWORD }}"
