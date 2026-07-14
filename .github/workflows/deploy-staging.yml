@@ -1,0 +1,40 @@
+name: Deploy Staging Alpha 
+
+on:
+  push:
+    branches:
+      - dev
+      - stage
+
+jobs:
+  publish-staging:
+    runs-on: ubuntu-latest
+    environment: Development
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+          cache: 'gradle'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Decode GPG Secret Key
+        run: |
+          echo "${{ secrets.GPG_SECRET_KEY_BASE64 }}" | base64 --decode > secring.gpg
+
+      - name: Publish Alpha Release
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          SIGNING_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          SIGNING_PASSWORD: ${{ secrets.GPG_PASSWORD }}
+          SIGNING_SECRET_KEY_RING_FILE: "secring.gpg"
+        run: |
+          ./gradlew publishAllPublicationsToCentralPortal \
+            -PstagingSuffix="alpha-${{ github.run_number }}"

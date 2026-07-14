@@ -12,7 +12,10 @@ plugins {
 }
 
 group = "io.github.srjranjan"
-version = "1.0.12"
+
+val baseVersion = findPublishingProperty("libVersion") ?: "1.0.0"
+val suffix = findPublishingProperty("stagingSuffix") ?: ""
+version = if (suffix.isNotEmpty()) "$baseVersion-$suffix" else baseVersion
 
 kotlin {
     androidLibrary {
