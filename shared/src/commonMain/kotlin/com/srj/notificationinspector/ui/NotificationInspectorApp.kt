@@ -14,10 +14,12 @@ import androidx.compose.ui.graphics.Color
 import com.srj.notificationinspector.model.NotificationLog
 import com.srj.notificationinspector.repository.NotificationRepository
 import com.srj.notificationinspector.theme.NotificationInspectorTheme
+import kotlinx.coroutines.launch
 
 sealed interface InspectorScreen {
     object ListScreen : InspectorScreen
     data class DetailScreen(val logId: Long) : InspectorScreen
+    data class EditPayloadScreen(val logId: Long) : InspectorScreen
 }
 
 @Composable
@@ -67,10 +69,53 @@ fun NotificationInspectorApp(
                             onNavigateBack = {
                                 currentScreen = InspectorScreen.ListScreen
                             },
-                            onReplay = onReplay
+                            onReplay = onReplay,
+                            onEditPayload = { id ->
+                                currentScreen = InspectorScreen.EditPayloadScreen(id)
+                            }
                         )
                     } else {
                         // Display a sleek loading indicator while the DB fetches the log record
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+                is InspectorScreen.EditPayloadScreen -> {
+                    var selectedLog by remember(screen.logId) { mutableStateOf<NotificationLog?>(null) }
+
+                    LaunchedEffect(screen.logId) {
+                        selectedLog = repository.getLogById(screen.logId)
+                    }
+                    BackHandler {
+                        currentScreen = InspectorScreen.DetailScreen(screen.logId)
+                    }
+
+                    val log = selectedLog
+                    if (log != null) {
+                        val scope = rememberCoroutineScope()
+                        NotificationEditPayloadScreen(
+                            log = log,
+                            onNavigateBack = {
+                                currentScreen = InspectorScreen.DetailScreen(screen.logId)
+                            },
+                            onReplayWithPayload = { editedLog ->
+                                scope.launch {
+                                    val newId = repository.insertLog(
+                                        title = editedLog.title,
+                                        body = editedLog.body,
+                                        rawPayload = editedLog.rawPayload
+                                    )
+                                    val logWithNewId = editedLog.copy(id = newId)
+                                    onReplay?.invoke(logWithNewId)
+                                    currentScreen = InspectorScreen.DetailScreen(newId)
+                                }
+                            }
+                        )
+                    } else {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center

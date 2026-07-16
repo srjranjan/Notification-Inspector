@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,9 +41,11 @@ fun NotificationDetailScreen(
     log: NotificationLog,
     onNavigateBack: () -> Unit,
     onReplay: ((NotificationLog) -> Unit)? = null,
+    onEditPayload: ((Long) -> Unit)? = null,
 ) {
     val clipboardManager = LocalClipboardManager.current
     var isAllExpanded by remember { mutableStateOf(true) }
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     // Parse JSON payload to AST
     val rootNode = remember(log.rawPayload) {
@@ -74,7 +77,7 @@ fun NotificationDetailScreen(
                 actions = {
                     if (onReplay != null) {
                         IconButton(
-                            onClick = { onReplay(log) }
+                            onClick = { showBottomSheet = true }
                         ) {
                             Icon(imageVector = Icons.Default.Replay, contentDescription = "Replay")
                         }
@@ -170,6 +173,72 @@ fun NotificationDetailScreen(
             }
         }
         Spacer(Modifier.height(40.dp))
+        
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = rememberModalBottomSheetState(),
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Replay Options",
+                        fontSize = 18.dp.toSp(),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    Button(
+                        onClick = {
+                            showBottomSheet = false
+                            onReplay?.invoke(log)
+                        },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Replay,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Replay with same payload", fontWeight = FontWeight.SemiBold)
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            showBottomSheet = false
+                            onEditPayload?.invoke(log.id)
+                        },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Edit Payload", fontWeight = FontWeight.SemiBold)
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+        }
     }
 }
 
