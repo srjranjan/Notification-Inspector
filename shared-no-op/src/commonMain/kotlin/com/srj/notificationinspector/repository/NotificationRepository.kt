@@ -9,4 +9,5 @@ interface NotificationRepository {
     suspend fun getLogById(id: Long): NotificationLog?
     suspend fun insertLog(title: String?, body: String?, rawPayload: String)
     suspend fun clearAllLogs()
+    suspend fun deleteLogById(id: Long)
 }

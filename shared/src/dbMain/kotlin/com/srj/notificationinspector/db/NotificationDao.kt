@@ -22,4 +22,7 @@ interface NotificationDao {
 
     @Query("DELETE FROM notification_inspector_logs")
     suspend fun clearAllLogs()
+
+    @Query("DELETE FROM notification_inspector_logs WHERE id = :id")
+    suspend fun deleteLogById(id: Long)
 }
