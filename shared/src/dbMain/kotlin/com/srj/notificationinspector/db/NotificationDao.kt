@@ -18,7 +18,7 @@ interface NotificationDao {
     suspend fun getLogById(id: Long): NotificationLogEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(log: NotificationLogEntity)
+    suspend fun insert(log: NotificationLogEntity): Long
 
     @Query("DELETE FROM notification_inspector_logs")
     suspend fun clearAllLogs()
