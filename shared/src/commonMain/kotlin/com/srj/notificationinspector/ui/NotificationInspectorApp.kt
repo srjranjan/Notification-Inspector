@@ -26,7 +26,8 @@ sealed interface InspectorScreen {
 fun NotificationInspectorApp(
     repository: NotificationRepository,
     onClose: (() -> Unit)? = null,
-    onReplay: ((NotificationLog) -> Unit)? = null
+    onReplay: ((NotificationLog) -> Unit)? = null,
+    onShare: ((String) -> Unit)? = null
 ) {
     var currentScreen by remember { mutableStateOf<InspectorScreen>(InspectorScreen.ListScreen) }
 
@@ -70,6 +71,7 @@ fun NotificationInspectorApp(
                                 currentScreen = InspectorScreen.ListScreen
                             },
                             onReplay = onReplay,
+                            onShare = onShare,
                             onEditPayload = { id ->
                                 currentScreen = InspectorScreen.EditPayloadScreen(id)
                             }

@@ -84,6 +84,26 @@ actual class NotificationInspector actual constructor(private val context: Platf
         replayListener?.onReplay(log)
     }
 
+    actual fun shareText(text: String) {
+        val window = UIApplication.sharedApplication.keyWindow ?: UIApplication.sharedApplication.windows.firstOrNull() as? platform.UIKit.UIWindow
+        val rootViewController = window?.rootViewController
+        if (rootViewController != null) {
+            val activityViewController = platform.UIKit.UIActivityViewController(
+                activityItems = listOf(text),
+                applicationActivities = null
+            )
+
+            // For iPad, UIActivityViewController needs a source view or bar button item to be presented correctly
+            activityViewController.popoverPresentationController?.sourceView = rootViewController.view
+
+            rootViewController.presentViewController(
+                viewControllerToPresent = activityViewController,
+                animated = true,
+                completion = null
+            )
+        }
+    }
+
     companion object {
         actual var replayListener: NotificationReplayListener? = null
     }
