@@ -99,9 +99,13 @@ fun App(context: PlatformContext) {
             Column {
 
                 Box(modifier = Modifier.fillMaxSize().weight(1f)) {
-                    NotificationInspectorApp(repository = repository) {
-                        showInspector = false
-                    }
+                    val platformInspector = remember { NotificationInspector(context) }
+                    NotificationInspectorApp(
+                        repository = repository,
+                        onClose = { showInspector = false },
+                        onReplay = { log -> platformInspector.replay(log) },
+                        onShare = { text -> platformInspector.shareText(text) }
+                    )
                 }
                 BottomAppBar(
                     containerColor = MaterialTheme.colorScheme.background,

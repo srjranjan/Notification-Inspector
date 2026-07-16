@@ -228,13 +228,13 @@ fun NotificationDetailScreen(
                     )
                 ) {
                     Icon(
-                        imageVector = Icons.Default.PlayArrow,
+                        imageVector = Icons.Default.Replay,
                         contentDescription = null,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Replay Notification",
+                        text = "Replay Options",
                         fontSize = 16.dp.toSp(),
                         fontWeight = FontWeight.Bold
                     )

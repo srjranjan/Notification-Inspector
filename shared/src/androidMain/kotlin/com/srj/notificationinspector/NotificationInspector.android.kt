@@ -137,15 +137,13 @@ actual class NotificationInspector actual constructor(private val context: Platf
     }
 
     actual fun shareText(text: String) {
-        val sendIntent: Intent = Intent().apply {
+        val sendIntent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, text)
             type = "text/plain"
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
-        val shareIntent = Intent.createChooser(sendIntent, "Share Notification Details").apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
+        val shareIntent = Intent.createChooser(sendIntent, null)
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.androidContext.startActivity(shareIntent)
     }
 

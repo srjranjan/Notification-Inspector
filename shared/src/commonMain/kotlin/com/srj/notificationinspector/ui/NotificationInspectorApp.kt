@@ -106,14 +106,11 @@ fun NotificationInspectorApp(
                             },
                             onReplayWithPayload = { editedLog ->
                                 scope.launch {
-                                    val newId = repository.insertLog(
-                                        title = editedLog.title,
-                                        body = editedLog.body,
-                                        rawPayload = editedLog.rawPayload
-                                    )
-                                    val logWithNewId = editedLog.copy(id = newId)
-                                    onReplay?.invoke(logWithNewId)
-                                    currentScreen = InspectorScreen.DetailScreen(newId)
+                                    // No need to manually insert. Replaying triggers the Firebase service
+                                    // which will be intercepted and logged as a new notification by the library.
+                                    onReplay?.invoke(editedLog)
+                                    // Return to list screen so user can see the new log pop up at the top
+                                    currentScreen = InspectorScreen.ListScreen
                                 }
                             }
                         )
