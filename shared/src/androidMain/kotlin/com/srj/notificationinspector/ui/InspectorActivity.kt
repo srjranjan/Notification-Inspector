@@ -7,7 +7,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.graphics.toArgb
 import com.srj.notificationinspector.NotificationInspector
 import com.srj.notificationinspector.PlatformContext
@@ -19,6 +19,8 @@ import com.srj.notificationinspector.theme.ThemeSettings
 
 class InspectorActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Enable edge-to-edge first thing
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         val platformContext = PlatformContext(applicationContext)
@@ -34,23 +36,19 @@ class InspectorActivity : ComponentActivity() {
                 ThemeMode.DARK -> true
             }
 
-            val colorScheme = if (isDark) DarkColorScheme else LightColorScheme
-            val surfaceColor = colorScheme.surface.toArgb()
-
-            // Dynamically update status bar color when theme mode changes
-            LaunchedEffect(isDark, surfaceColor) {
+            // Dynamically update system bar styles when isDark changes
+            DisposableEffect(isDark) {
                 enableEdgeToEdge(
-                    statusBarStyle = if (isDark) {
-                        SystemBarStyle.dark(surfaceColor)
-                    } else {
-                        SystemBarStyle.light(surfaceColor, surfaceColor)
-                    },
-                    navigationBarStyle = if (isDark) {
-                        SystemBarStyle.dark(surfaceColor)
-                    } else {
-                        SystemBarStyle.light(surfaceColor, surfaceColor)
-                    }
+                    statusBarStyle = SystemBarStyle.auto(
+                        Color.TRANSPARENT,
+                        Color.TRANSPARENT,
+                    ) { isDark },
+                    navigationBarStyle = SystemBarStyle.auto(
+                        Color.TRANSPARENT,
+                        Color.TRANSPARENT,
+                    ) { isDark }
                 )
+                onDispose {}
             }
 
             NotificationInspectorApp(
@@ -58,6 +56,9 @@ class InspectorActivity : ComponentActivity() {
                 onClose = { finish() },
                 onReplay = { log ->
                     NotificationInspector(platformContext).replay(log)
+                },
+                onShare = { text ->
+                    NotificationInspector(platformContext).shareText(text)
                 }
             )
         }

@@ -3,36 +3,70 @@ package com.srj.notificationinspector.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Airplay
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.BrightnessAuto
-import androidx.compose.material.icons.filled.CopyAll
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.srj.notificationinspector.model.NotificationLog
 import com.srj.notificationinspector.parser.JsonNode
 import com.srj.notificationinspector.parser.JsonParser
 import com.srj.notificationinspector.parser.JsonValueType
-import com.srj.notificationinspector.theme.*
+import com.srj.notificationinspector.theme.BackgroundDark
+import com.srj.notificationinspector.theme.CodeBlockDark
+import com.srj.notificationinspector.theme.CodeBlockLight
+import com.srj.notificationinspector.theme.JsonBooleanLight
+import com.srj.notificationinspector.theme.JsonKeyLight
+import com.srj.notificationinspector.theme.JsonNullLight
+import com.srj.notificationinspector.theme.JsonNumberLight
+import com.srj.notificationinspector.theme.JsonStringLight
 import com.srj.notificationinspector.util.Util.toSp
-import org.jetbrains.compose.resources.vectorResource
-import java.awt.SystemColor.text
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,9 +74,12 @@ fun NotificationDetailScreen(
     log: NotificationLog,
     onNavigateBack: () -> Unit,
     onReplay: ((NotificationLog) -> Unit)? = null,
+    onShare: ((String) -> Unit)? = null,
+    onEditPayload: ((Long) -> Unit)? = null,
 ) {
     val clipboardManager = LocalClipboardManager.current
     var isAllExpanded by remember { mutableStateOf(true) }
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     // Parse JSON payload to AST
     val rootNode = remember(log.rawPayload) {
@@ -72,17 +109,15 @@ fun NotificationDetailScreen(
                     }
                 },
                 actions = {
-                    if (onReplay != null) {
+                    if (onShare != null) {
                         IconButton(
-                            onClick = { onReplay(log) }
+                            onClick = {
+                                val sharedText = formatLogForSharing(log)
+                                onShare.invoke(sharedText)
+                            }
                         ) {
-                            Icon(imageVector = Icons.Default.Replay, contentDescription = "Replay")
+                            Icon(imageVector = Icons.Default.Share, contentDescription = "Share")
                         }
-                    }
-                    IconButton(
-                        onClick = { clipboardManager.setText(AnnotatedString(log.rawPayload)) }
-                    ) {
-                        Icon(imageVector = Icons.Default.CopyAll, contentDescription = "Copy")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -93,84 +128,200 @@ fun NotificationDetailScreen(
             )
         }
     ) { paddingValues ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
-                .padding(16.dp)
         ) {
-            // General Details Header
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                // General Details Header
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = log.title ?: "No Title",
+                                fontSize = 18.dp.toSp(),
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = log.body ?: "No Body",
+                                fontSize = 14.dp.toSp(),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Timestamp: ${formatTimestamp(log.timestamp)}",
+                                fontSize = 12.dp.toSp(),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
+                }
+
+                // Payload Label
+                item {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = log.title ?: "No Title",
-                            fontSize = 18.dp.toSp(),
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = log.body ?: "No Body",
-                            fontSize = 14.dp.toSp(),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Timestamp: ${formatTimestamp(log.timestamp)}",
+                            text = "PAYLOAD",
                             fontSize = 12.dp.toSp(),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                            fontFamily = FontFamily.Monospace
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.weight(1f)
                         )
+                        TextButton(onClick = {
+                            isAllExpanded = !isAllExpanded
+                            toggleAllExpansion(rootNode, isAllExpanded)
+                            refreshTrigger++
+                        },) {
+                            Text(
+                                if (isAllExpanded) "Collapse All" else "Expand All",
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                // Interactive JSON AST Tree Renderer
+                item {
+                    val isDark = MaterialTheme.colorScheme.background == BackgroundDark
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(if (isDark) CodeBlockDark else CodeBlockLight, RoundedCornerShape(8.dp))
+                            .padding(12.dp)
+                    ) {
+                        key(refreshTrigger) {
+                            JsonTreeRenderer(node = rootNode)
+                        }
                     }
                 }
             }
 
-            // Payload Label
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "PAYLOAD",
-                        fontSize = 12.dp.toSp(),
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.weight(1f)
-                    )
-                    TextButton(onClick = {
-                        isAllExpanded = !isAllExpanded
-                        toggleAllExpansion(rootNode, isAllExpanded)
-                        refreshTrigger++
-                    },) {
-                        Text(
-                            if (isAllExpanded) "Collapse All" else "Expand All",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            }
-
-            // Interactive JSON AST Tree Renderer
-            item {
-                val isDark = MaterialTheme.colorScheme.background == BackgroundDark
-                Box(
+            // Fixed Replay CTA at the bottom
+            Surface(
+                tonalElevation = 2.dp,
+                shadowElevation = 8.dp,
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                Button(
+                    onClick = { showBottomSheet = true },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(if (isDark) CodeBlockDark else CodeBlockLight, RoundedCornerShape(8.dp))
-                        .padding(12.dp)
+                        .padding(16.dp)
+                        .height(52.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
-                    key(refreshTrigger) {
-                        JsonTreeRenderer(node = rootNode)
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Replay,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Replay Options",
+                        fontSize = 16.dp.toSp(),
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
         Spacer(Modifier.height(40.dp))
+        
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = rememberModalBottomSheetState(),
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Replay Notification",
+                        fontSize = 18.dp.toSp(),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    Button(
+                        onClick = {
+                            showBottomSheet = false
+                            onReplay?.invoke(log)
+                        },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Replay with same payload", fontWeight = FontWeight.SemiBold)
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            showBottomSheet = false
+                            onEditPayload?.invoke(log.id)
+                        },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Edit Payload", fontWeight = FontWeight.SemiBold)
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+        }
     }
+}
+
+private fun formatLogForSharing(log: NotificationLog): String {
+    return """
+        🔔 Notification Inspector Log
+        ------------------------------
+        Title: ${log.title ?: "No Title"}
+        Body: ${log.body ?: "No Body"}
+        Timestamp: ${formatTimestamp(log.timestamp)}
+
+        Raw Payload:
+        ${log.rawPayload}
+    """.trimIndent()
 }
 
 @Composable

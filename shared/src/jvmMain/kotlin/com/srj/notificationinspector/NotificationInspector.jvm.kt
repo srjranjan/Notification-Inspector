@@ -17,6 +17,16 @@ actual class NotificationInspector actual constructor(context: PlatformContext) 
         replayListener?.onReplay(log)
     }
 
+    actual fun shareText(text: String) {
+        try {
+            val selection = java.awt.datatransfer.StringSelection(text)
+            val clipboard = java.awt.Toolkit.getDefaultToolkit().systemClipboard
+            clipboard.setContents(selection, selection)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     companion object {
         actual var replayListener: NotificationReplayListener? = null
     }

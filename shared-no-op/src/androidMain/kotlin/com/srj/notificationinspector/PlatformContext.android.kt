@@ -9,5 +9,6 @@ actual fun getNotificationRepository(context: PlatformContext): com.srj.notifica
         override suspend fun getLogById(id: Long) = null
         override suspend fun insertLog(title: String?, body: String?, rawPayload: String) {}
         override suspend fun clearAllLogs() {}
+        override suspend fun deleteLogById(id: Long) {}
     }
 }

@@ -29,19 +29,25 @@ class InMemoryNotificationRepository : NotificationRepository {
         return logs.value.find { it.id == id }
     }
 
-    override suspend fun insertLog(title: String?, body: String?, rawPayload: String) {
+    override suspend fun insertLog(title: String?, body: String?, rawPayload: String): Long {
+        val newId = idCounter++
         val newLog = NotificationLog(
-            id = idCounter++,
+            id = newId,
             timestamp = getCurrentTimeMillis(),
             title = title,
             body = body,
             rawPayload = rawPayload
         )
         logs.value = listOf(newLog) + logs.value
+        return newId
     }
 
     override suspend fun clearAllLogs() {
         logs.value = emptyList()
+    }
+
+    override suspend fun deleteLogById(id: Long) {
+        logs.value = logs.value.filter { it.id != id }
     }
 }
 

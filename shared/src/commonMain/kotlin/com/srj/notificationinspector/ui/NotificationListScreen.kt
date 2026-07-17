@@ -3,15 +3,16 @@ package com.srj.notificationinspector.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BrightnessAuto
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +28,7 @@ import com.srj.notificationinspector.theme.*
 import com.srj.notificationinspector.ui.formatTimestamp
 import io.github.srjranjan.shared.generated.resources.Res
 import io.github.srjranjan.shared.generated.resources.ic_logo
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
@@ -39,9 +41,11 @@ fun NotificationListScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     var searchQuery by remember { mutableStateOf("") }
+    var isRefreshing by remember { mutableStateOf(false) }
+    var refreshTrigger by remember { mutableStateOf(0) }
 
     // Collect logs from database reactively
-    val logsFlow = remember(searchQuery) {
+    val logsFlow = remember(searchQuery, refreshTrigger) {
         if (searchQuery.isBlank()) {
             repository.getAllLogs()
         } else {
@@ -136,35 +140,69 @@ fun NotificationListScreen(
                 singleLine = true
             )
 
-            // Logs Listing
-            if (logs.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Image(
-                            painter = painterResource(Res.drawable.ic_logo),
-                            contentDescription = "SDK Logo Empty",
-                            modifier = Modifier
-                                .size(140.dp)
-                                .padding(bottom = 16.dp)
-                        )
-                        Text(
-                            text = if (searchQuery.isBlank()) "No notification logs intercepted yet." else "No results found.",
-                            color = Color(0xFF64748B),
-                            fontSize = 14.sp
-                        )
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = {
+                    coroutineScope.launch {
+                        isRefreshing = true
+                        refreshTrigger++
+                        delay(1000)
+                        isRefreshing = false
                     }
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-                    items(logs, key = { it.id }) { log ->
-                        LogCard(log = log, onClick = { onNavigateToDetail(log.id) })
+                },
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Logs Listing
+                if (logs.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Image(
+                                painter = painterResource(Res.drawable.ic_logo),
+                                contentDescription = "SDK Logo Empty",
+                                modifier = Modifier
+                                    .size(140.dp)
+                                    .padding(bottom = 16.dp)
+                            )
+                            Text(
+                                text = if (searchQuery.isBlank()) "No notification logs intercepted yet." else "No results found.",
+                                color = Color(0xFF64748B),
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        items(logs, key = { it.id }) { log ->
+                            val dismissState = rememberSwipeToDismissBoxState(
+                                confirmValueChange = { value ->
+                                    if (value == SwipeToDismissBoxValue.EndToStart) {
+                                        coroutineScope.launch {
+                                            repository.deleteLogById(log.id)
+                                        }
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                }
+                            )
+
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                backgroundContent = { DismissBackground(dismissState) },
+                                enableDismissFromStartToEnd = false
+                            ) {
+                                LogCard(log = log, onClick = { onNavigateToDetail(log.id) })
+                            }
+                        }
                     }
                 }
             }
@@ -215,6 +253,32 @@ fun LogCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DismissBackground(dismissState: SwipeToDismissBoxState) {
+    val color = when (dismissState.dismissDirection) {
+        SwipeToDismissBoxValue.EndToStart -> Color(0xFFEF4444)
+        else -> Color.Transparent
+    }
+    val direction = dismissState.dismissDirection
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color, shape = RoundedCornerShape(12.dp))
+            .padding(horizontal = 20.dp),
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        if (direction == SwipeToDismissBoxValue.EndToStart) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Delete",
+                tint = Color.White
             )
         }
     }

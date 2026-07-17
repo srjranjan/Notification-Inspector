@@ -28,18 +28,22 @@ class RoomNotificationRepository(
         return dao.getLogById(id)?.toDomain()
     }
 
-    override suspend fun insertLog(title: String?, body: String?, rawPayload: String) {
+    override suspend fun insertLog(title: String?, body: String?, rawPayload: String): Long {
         val entity = NotificationLogEntity(
             timestamp = getCurrentTimeMillis(),
             title = title,
             body = body,
             rawJsonPayload = rawPayload
         )
-        dao.insert(entity)
+        return dao.insert(entity)
     }
 
     override suspend fun clearAllLogs() {
         dao.clearAllLogs()
+    }
+
+    override suspend fun deleteLogById(id: Long) {
+        dao.deleteLogById(id)
     }
 
     // Mapper from Entity to Clean Domain model

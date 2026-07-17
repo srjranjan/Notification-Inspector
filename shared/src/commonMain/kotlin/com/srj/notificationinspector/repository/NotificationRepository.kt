@@ -7,6 +7,7 @@ interface NotificationRepository {
     fun getAllLogs(): Flow<List<NotificationLog>>
     fun searchLogs(query: String): Flow<List<NotificationLog>>
     suspend fun getLogById(id: Long): NotificationLog?
-    suspend fun insertLog(title: String?, body: String?, rawPayload: String)
+    suspend fun insertLog(title: String?, body: String?, rawPayload: String): Long
     suspend fun clearAllLogs()
+    suspend fun deleteLogById(id: Long)
 }
