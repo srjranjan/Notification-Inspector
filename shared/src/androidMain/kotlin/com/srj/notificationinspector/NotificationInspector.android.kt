@@ -136,6 +136,17 @@ actual class NotificationInspector actual constructor(private val context: Platf
         return resolveInfo.firstOrNull()?.serviceInfo?.name
     }
 
+    actual fun shareText(text: String) {
+        val sendIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, text)
+            type = "text/plain"
+        }
+        val shareIntent = Intent.createChooser(sendIntent, null)
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.androidContext.startActivity(shareIntent)
+    }
+
     actual companion object {
         actual var replayListener: NotificationReplayListener? = null
     }
