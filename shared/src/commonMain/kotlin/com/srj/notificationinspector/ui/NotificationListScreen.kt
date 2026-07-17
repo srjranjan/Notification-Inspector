@@ -183,23 +183,25 @@ fun NotificationListScreen(
                     ) {
                         items(logs, key = { it.id }) { log ->
                             val dismissState = rememberSwipeToDismissBoxState(
-                            confirmValueChange = { value ->
-                                if (value == SwipeToDismissBoxValue.EndToStart) {
-                                    coroutineScope.launch {
-                                        repository.deleteLogById(log.id)
+                                confirmValueChange = { value ->
+                                    if (value == SwipeToDismissBoxValue.EndToStart) {
+                                        coroutineScope.launch {
+                                            repository.deleteLogById(log.id)
+                                        }
+                                        true
+                                    } else {
+                                        false
                                     }
-                                    true
-                                } else {
-                                    false
                                 }
-                            }
-                        )
+                            )
 
-                        SwipeToDismissBox(
-                            state = dismissState,
-                            backgroundContent = { DismissBackground(dismissState) },
-                            enableDismissFromStartToEnd = false
-                        ) {LogCard(log = log, onClick = { onNavigateToDetail(log.id) })
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                backgroundContent = { DismissBackground(dismissState) },
+                                enableDismissFromStartToEnd = false
+                            ) {
+                                LogCard(log = log, onClick = { onNavigateToDetail(log.id) })
+                            }
                         }
                     }
                 }
