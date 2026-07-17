@@ -27,7 +27,8 @@ sealed interface InspectorScreen {
 fun NotificationInspectorApp(
     repository: NotificationRepository,
     onClose: (() -> Unit)? = null,
-    onReplay: ((NotificationLog) -> Unit)? = null
+    onReplay: ((NotificationLog) -> Unit)? = null,
+    onShare: ((String) -> Unit)? = null
 ) {
     var currentScreen by remember { mutableStateOf<InspectorScreen>(InspectorScreen.ListScreen) }
 
@@ -99,22 +100,23 @@ fun NotificationInspectorApp(
                                     currentScreen = InspectorScreen.ListScreen
                                 },
                                 onReplay = onReplay,
-                                onEditPayload = { id ->
-                                    currentScreen = InspectorScreen.EditPayloadScreen(id)
-                                }
-                            )
-                        } else {
-                            // Display a sleek loading indicator while the DB fetches the log record
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                                onShare = onShare,
+                            onEditPayload = { id ->
+                                currentScreen = InspectorScreen.EditPayloadScreen(id)
                             }
+                        )
+                    } else {
+                        // Display a sleek loading indicator while the DB fetches the log record
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         }
                     }
-                    is InspectorScreen.EditPayloadScreen -> {
-                        var selectedLog by remember(screen.logId) { mutableStateOf<NotificationLog?>(null) }
+                }
+                is InspectorScreen.EditPayloadScreen -> {
+                    var selectedLog by remember(screen.logId) { mutableStateOf<NotificationLog?>(null) }
 
                         LaunchedEffect(screen.logId) {
                             selectedLog = repository.getLogById(screen.logId)
@@ -133,14 +135,11 @@ fun NotificationInspectorApp(
                                 },
                                 onReplayWithPayload = { editedLog ->
                                     scope.launch {
-                                        val newId = repository.insertLog(
-                                            title = editedLog.title,
-                                            body = editedLog.body,
-                                            rawPayload = editedLog.rawPayload
-                                        )
-                                        val logWithNewId = editedLog.copy(id = newId)
-                                        onReplay?.invoke(logWithNewId)
-                                        currentScreen = InspectorScreen.DetailScreen(newId)
+                                        // No need to manually insert. Replaying triggers the Firebase service
+                                        // which will be intercepted and logged as a new notification by the library.
+                                        onReplay?.invoke(editedLog)
+                                        // Return to list screen so user can see the new log pop up at the top
+                                        currentScreen = InspectorScreen.ListScreen
                                     }
                                 }
                             )

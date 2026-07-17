@@ -17,6 +17,10 @@ actual class NotificationInspector actual constructor(context: PlatformContext) 
         replayListener?.onReplay(log)
     }
 
+    actual fun shareText(text: String) {
+        kotlinx.browser.window.navigator.clipboard.writeText(text)
+    }
+
     companion object {
         actual var replayListener: NotificationReplayListener? = null
     }
