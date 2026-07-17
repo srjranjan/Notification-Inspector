@@ -45,6 +45,10 @@ class InMemoryNotificationRepository : NotificationRepository {
     override suspend fun clearAllLogs() {
         logs.value = emptyList()
     }
+
+    override suspend fun deleteLogById(id: Long) {
+        logs.value = logs.value.filter { it.id != id }
+    }
 }
 
 actual fun getNotificationRepository(context: PlatformContext): NotificationRepository {

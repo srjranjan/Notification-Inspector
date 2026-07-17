@@ -42,6 +42,10 @@ class RoomNotificationRepository(
         dao.clearAllLogs()
     }
 
+    override suspend fun deleteLogById(id: Long) {
+        dao.deleteLogById(id)
+    }
+
     // Mapper from Entity to Clean Domain model
     private fun NotificationLogEntity.toDomain(): NotificationLog {
         return NotificationLog(
