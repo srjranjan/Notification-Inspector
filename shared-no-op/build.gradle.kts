@@ -18,12 +18,29 @@ val suffix = findPublishingProperty("stagingSuffix") ?: ""
 version = if (suffix.isNotEmpty()) "$baseVersion-$suffix" else baseVersion
 
 kotlin {
+    val target = findPublishingProperty("publishTarget") ?: "android"
+    val isAndroidOnly = !target.equals("all", ignoreCase = true)
+
+    if (!isAndroidOnly) {
+        val xcf = XCFramework("NotificationInspectorNoOp")
+        listOf(
+            iosArm64(),
+            iosSimulatorArm64()
+        ).forEach { iosTarget ->
+            iosTarget.binaries.framework {
+                baseName = "NotificationInspectorNoOp"
+                xcf.add(this)
+                isStatic = true
+            }
+        }
+    }
+
     androidLibrary {
        namespace = "com.srj.notificationinspector.shared.noop"
        compileSdk = libs.versions.android.compileSdk.get().toInt()
        minSdk = libs.versions.android.minSdk.get().toInt()
     }
-    
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -31,9 +48,18 @@ kotlin {
             implementation(libs.compose.material3)
             implementation(libs.compose.ui)
         }
-        
+
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
+        }
+
+        if (!isAndroidOnly) {
+            val iosMain by getting
+            val iosArm64Main by getting
+            val iosSimulatorArm64Main by getting
+
+            iosArm64Main.dependsOn(iosMain)
+            iosSimulatorArm64Main.dependsOn(iosMain)
         }
     }
 }

@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 import java.util.Properties
 
 plugins {
@@ -24,16 +25,18 @@ kotlin {
     val isAndroidOnly = !(findPublishingProperty("publishTarget") ?: "android").equals("all", ignoreCase = true)
 
     if (!isAndroidOnly) {
+        val xcf = XCFramework("NotificationInspector")
         listOf(
             iosArm64(),
             iosSimulatorArm64()
         ).forEach { iosTarget ->
             iosTarget.binaries.framework {
-                baseName = "Shared"
+                baseName = "NotificationInspector"
+                xcf.add(this)
                 isStatic = true
             }
         }
-        
+
         jvm()
         
         js {
