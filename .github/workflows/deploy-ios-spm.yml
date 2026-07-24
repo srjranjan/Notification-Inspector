@@ -1,0 +1,100 @@
+name: Deploy iOS Swift Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish-spm:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+          cache: 'gradle'
+
+      - name: Build XCFrameworks
+        run: |
+          ./gradlew :shared:assembleNotificationInspectorReleaseXCFramework \
+                    :shared-no-op:assembleNotificationInspectorNoOpReleaseXCFramework \
+                    -PpublishTarget=all
+
+      - name: Zip and Hash Frameworks
+        id: package
+        run: |
+          # Compress outputs
+          cd shared/build/XCFrameworks/release
+          zip -r NotificationInspector.xcframework.zip NotificationInspector.xcframework
+          FULL_SHA=$(shasum -a 256 NotificationInspector.xcframework.zip | awk '{ print $1 }')
+
+          cd ../../../../shared-no-op/build/XCFrameworks/release
+          zip -r NotificationInspectorNoOp.xcframework.zip NotificationInspectorNoOp.xcframework
+          NOOP_SHA=$(shasum -a 256 NotificationInspectorNoOp.xcframework.zip | awk '{ print $1 }')
+
+          echo "full_sha=$FULL_SHA" >> $GITHUB_OUTPUT
+          echo "noop_sha=$NOOP_SHA" >> $GITHUB_OUTPUT
+
+          # Go back to root
+          cd ../../../..
+
+      - name: Upload Binary Frameworks to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            shared/build/XCFrameworks/release/NotificationInspector.xcframework.zip
+            shared-no-op/build/XCFrameworks/release/NotificationInspectorNoOp.xcframework.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout Swift Package Repo
+        uses: actions/checkout@v4
+        with:
+          repository: 'srjranjan/Notification-Inspector-SPM'
+          token: ${{ secrets.SPM_DEPLOY_TOKEN }}
+          path: 'spm-repo'
+
+      - name: Update Package.swift
+        env:
+          FULL_SHA: ${{ steps.package.outputs.full_sha }}
+          NOOP_SHA: ${{ steps.package.outputs.noop_sha }}
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          URL_FULL="https://github.com/srjranjan/Notification-Inspector/releases/download/$VERSION/NotificationInspector.xcframework.zip"
+          URL_NOOP="https://github.com/srjranjan/Notification-Inspector/releases/download/$VERSION/NotificationInspectorNoOp.xcframework.zip"
+
+          cd spm-repo
+          python3 -c "
+          import re
+          import os
+
+          content = open('Package.swift').read()
+
+          # Update URLs
+          content = re.sub(r'url: \"https://github.com/srjranjan/Notification-Inspector/releases/download/.*?/NotificationInspector\.xcframework\.zip\"', f'url: \"{os.environ[\"URL_FULL\"]}\"', content)
+          content = re.sub(r'url: \"https://github.com/srjranjan/Notification-Inspector/releases/download/.*?/NotificationInspectorNoOp\.xcframework\.zip\"', f'url: \"{os.environ[\"URL_NOOP\"]}\"', content)
+
+          # Update Checksums - this assumes a specific order in Package.swift or we can use more complex regex
+          # Finding target blocks to be precise
+          def replace_checksum(target_name, new_sha, text):
+              pattern = rf'(name:\s*\"{target_name}\",\s*url:\s*\".*?\",\s*checksum:\s*\")(.*?)(\")'
+              return re.sub(pattern, rf'\1{new_sha}\3', text, flags=re.DOTALL)
+
+          content = replace_checksum('NotificationInspector', os.environ['FULL_SHA'], content)
+          content = replace_checksum('NotificationInspectorNoOp', os.environ['NOOP_SHA'], content)
+
+          with open('Package.swift', 'w') as f:
+              f.write(content)
+          "
+
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add Package.swift
+          git commit -m "Update binaries for $VERSION"
+          git tag $VERSION
+          git push origin main --tags
