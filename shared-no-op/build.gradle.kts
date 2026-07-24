@@ -52,15 +52,6 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
         }
-
-        if (!isAndroidOnly) {
-            val iosMain by getting
-            val iosArm64Main by getting
-            val iosSimulatorArm64Main by getting
-
-            iosArm64Main.dependsOn(iosMain)
-            iosSimulatorArm64Main.dependsOn(iosMain)
-        }
     }
 }
 

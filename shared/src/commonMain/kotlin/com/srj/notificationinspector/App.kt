@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.sp
 import com.srj.notificationinspector.theme.NotificationInspectorTheme
 import com.srj.notificationinspector.ui.NotificationInspectorApp
 import com.srj.notificationinspector.util.Util.toSp
-import com.sun.tools.javac.jvm.ByteCodes.lor
 import kotlinx.coroutines.launch
 
 @Composable

@@ -7,8 +7,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.srj.notificationinspector.model.NotificationLog
-import platform.UIKit.UIApplication
-import platform.UIKit.UIApplicationDelegateProtocol
+import platform.UIKit.*
+import platform.Foundation.*
 import platform.objc.sel_registerName
 
 actual typealias PlatformNotificationPayload = NSDictionary
@@ -56,7 +56,7 @@ actual class NotificationInspector actual constructor(private val context: Platf
             val payload: NSDictionary? = try {
                 val data = (log.rawPayload as NSString).dataUsingEncoding(NSUTF8StringEncoding)
                 if (data != null) {
-                    NSJSONSerialization.JSONObjectWithData(data, 0, null) as? NSDictionary
+                    NSJSONSerialization.JSONObjectWithData(data, 0UL, null) as? NSDictionary
                 } else null
             } catch (e: Exception) {
                 null
@@ -70,12 +70,12 @@ actual class NotificationInspector actual constructor(private val context: Platf
                     val delegateProto = delegate as? UIApplicationDelegateProtocol
                     delegateProto?.application(
                         application = app,
-                        didReceiveRemoteNotification = payload,
+                        didReceiveRemoteNotification = payload as Map<Any?, *>,
                         fetchCompletionHandler = { _ -> }
                     )
                 } else if (delegate.respondsToSelector(oldSelector)) {
                     val delegateProto = delegate as? UIApplicationDelegateProtocol
-                    delegateProto?.application(app, payload)
+                    delegateProto?.application(app, payload as Map<Any?, *>)
                 }
             }
         }
@@ -104,7 +104,7 @@ actual class NotificationInspector actual constructor(private val context: Platf
         }
     }
 
-    companion object {
+    actual companion object {
         actual var replayListener: NotificationReplayListener? = null
     }
 }
