@@ -18,17 +18,17 @@ val suffix = findPublishingProperty("stagingSuffix") ?: ""
 version = if (suffix.isNotEmpty()) "$baseVersion-$suffix" else baseVersion
 
 kotlin {
-    val target = findPublishingProperty("publishTarget") ?: "android"
-    val isAndroidOnly = !target.equals("all", ignoreCase = true)
+    val isXcodeBuild = System.getenv("SDK_NAME") != null
+    val isAndroidOnly = !isXcodeBuild && !(findPublishingProperty("publishTarget") ?: "android").equals("all", ignoreCase = true)
 
     if (!isAndroidOnly) {
-        val xcf = XCFramework("NotificationInspectorNoOp")
+        val xcf = XCFramework("SharedNoOp")
         listOf(
             iosArm64(),
             iosSimulatorArm64()
         ).forEach { iosTarget ->
             iosTarget.binaries.framework {
-                baseName = "NotificationInspectorNoOp"
+                baseName = "Shared"
                 xcf.add(this)
                 isStatic = true
             }
