@@ -1,6 +1,6 @@
 package com.srj.notificationinspector.ui
 
-import androidx.activity.compose.BackHandler
+import com.srj.notificationinspector.ui.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

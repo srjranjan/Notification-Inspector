@@ -22,16 +22,17 @@ val suffix = findPublishingProperty("stagingSuffix") ?: ""
 version = if (suffix.isNotEmpty()) "$baseVersion-$suffix" else baseVersion
 
 kotlin {
-    val isAndroidOnly = !(findPublishingProperty("publishTarget") ?: "android").equals("all", ignoreCase = true)
+    val isXcodeBuild = System.getenv("SDK_NAME") != null
+    val isAndroidOnly = !isXcodeBuild && !(findPublishingProperty("publishTarget") ?: "android").equals("all", ignoreCase = true)
 
     if (!isAndroidOnly) {
-        val xcf = XCFramework("NotificationInspector")
+        val xcf = XCFramework("Shared")
         listOf(
             iosArm64(),
             iosSimulatorArm64()
         ).forEach { iosTarget ->
             iosTarget.binaries.framework {
-                baseName = "NotificationInspector"
+                baseName = "Shared"
                 xcf.add(this)
                 isStatic = true
             }
@@ -119,9 +120,10 @@ room {
 
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
-    
-    val isAndroidOnly = !(findPublishingProperty("publishTarget") ?: "android").equals("all", ignoreCase = true)
-    
+
+    val isXcodeBuild = System.getenv("SDK_NAME") != null
+    val isAndroidOnly = !isXcodeBuild && !(findPublishingProperty("publishTarget") ?: "android").equals("all", ignoreCase = true)
+
     configurations.configureEach {
         if (name.startsWith("kspAndroid", ignoreCase = true) || name.startsWith("kspSharedAndroid", ignoreCase = true)) {
             project.dependencies.add(name, libs.androidx.room.compiler)
