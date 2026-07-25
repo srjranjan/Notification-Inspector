@@ -35,4 +35,4 @@ jobs:
           SIGNING_PASSWORD: ${{ secrets.GPG_PASSWORD }}
           SIGNING_SECRET_KEY_RING_FILE: "secring.gpg"
         run: |
-          ./gradlew publishAllPublicationsToCentralPortal
+          ./gradlew publishAllPublicationsToCentralPortal -PpublishTarget=all
