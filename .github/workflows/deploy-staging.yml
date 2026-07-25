@@ -37,4 +37,5 @@ jobs:
           SIGNING_SECRET_KEY_RING_FILE: "secring.gpg"
         run: |
           ./gradlew publishAllPublicationsToCentralPortal \
+            -PpublishTarget=all \
             -PstagingSuffix="alpha-${{ github.run_number }}"
