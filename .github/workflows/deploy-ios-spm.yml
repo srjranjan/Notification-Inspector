@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   publish-spm:
-    runs-on: macos-latest
+    runs-on: macos-14-large
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
