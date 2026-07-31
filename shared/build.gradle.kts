@@ -26,13 +26,13 @@ kotlin {
     val isAndroidOnly = !isXcodeBuild && !(findPublishingProperty("publishTarget") ?: "android").equals("all", ignoreCase = true)
 
     if (!isAndroidOnly) {
-        val xcf = XCFramework("Shared")
+        val xcf = XCFramework("shared")
         listOf(
             iosArm64(),
             iosSimulatorArm64()
         ).forEach { iosTarget ->
             iosTarget.binaries.framework {
-                baseName = "Shared"
+                baseName = "shared"
                 xcf.add(this)
                 isStatic = true
             }
