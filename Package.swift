@@ -19,13 +19,13 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "shared",
-            url: "https://github.com/srjranjan/Notification-Inspector/releases/download/v1.0.20-alpha01/shared.xcframework.zip",
-            checksum: "69947a701b565681dd12dba10f1348ad051824d6b65c2ebda0e8d12ffcc0261b"
+            url: "https://github.com/srjranjan/Notification-Inspector/releases/download/v1.0.20/shared.xcframework.zip",
+            checksum: "e44e9ae2cfa291656583f1a19f79c84ffcc04763253928834dec3a1e2736f3ed"
         ),
         .binaryTarget(
             name: "sharedNoOp",
-            url: "https://github.com/srjranjan/Notification-Inspector/releases/download/v1.0.20-alpha01/sharedNoOp.xcframework.zip",
-            checksum: "47583b49111f69778e7e3553c0be230e87e80a31a1ba398fb26e1407dc094735"
+            url: "https://github.com/srjranjan/Notification-Inspector/releases/download/v1.0.20/sharedNoOp.xcframework.zip",
+            checksum: "caf5c6d197278333c92e08cd0427fdb1cb9afda7d885108f2faa0e6e30a0c5f1"
         )
     ]
 )
