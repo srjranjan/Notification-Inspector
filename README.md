@@ -5,7 +5,7 @@
     <img src="https://img.shields.io/badge/Kotlin-Multiplatform-blue.svg?style=flat-square&logo=kotlin" alt="Kotlin Multiplatform" />
   </a>
   <a href="#">
-    <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20JVM%20%7C%20JS%20%7C%20Wasm-orange.svg?style=flat-square" alt="Platform Support" />
+    <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-orange.svg?style=flat-square" alt="Platform Support" />
   </a>
   <a href="https://search.maven.org/artifact/io.github.srjranjan/shared">
     <img src="https://img.shields.io/maven-central/v/io.github.srjranjan/shared.svg?label=Maven%20Central&style=flat-square" alt="Maven Central" />
@@ -19,7 +19,7 @@
 
 ## 🚀 Introduction
 
-**Notification Inspector** is a lightweight, pure Kotlin Multiplatform (KMP) on-device DevTools for push notifications, designed to capture, log, and inspect push notification payloads directly on-device. Supporting **Android, iOS, JVM (Desktop), JavaScript, and WebAssembly**, it provides developers with an interactive, on-device UI console to monitor and audit Firebase Cloud Messages (FCM) or Apple Push Notifications (APNs) in real-time, greatly accelerating the development and QA cycle.
+**Notification Inspector** is a lightweight, pure Kotlin Multiplatform (KMP) on-device DevTools for push notifications, designed to capture, log, and inspect push notification payloads directly on-device. Supporting **Android and iOS**, it provides developers with an interactive, on-device UI console to monitor and audit Firebase Cloud Messages (FCM) or Apple Push Notifications (APNs) in real-time, greatly accelerating the development and QA cycle.
 
 ---
 
@@ -29,9 +29,6 @@
 | :--- | :--- | :--- | :--- |
 | **Android** (API 21+) | ✅ Fully Implemented | `RemoteMessage` (FCM) | Auto-interception, Standalone Activity UI, Room SQLite DB |
 | **iOS** (iOS 12+) | ✅ Fully Implemented | `NSDictionary` (APNs) | Auto-interception, Embeddable SwiftUI Component, Room SQLite DB |
-| **JVM (Desktop)** | 🚧 Work In Progress | `Any` | Coming Soon (no-op stub) |
-| **JavaScript (JS)** | 🚧 Work In Progress | `Any` | Coming Soon (no-op stub) |
-| **WebAssembly (Wasm)** | 🚧 Work In Progress | `Any` | Coming Soon (no-op stub) |
 
 ---
 
@@ -72,7 +69,7 @@ Add the dependency to your shared/common module's `build.gradle.kts` file:
 sourceSets {
     commonMain.dependencies {
         // Debug configuration uses the full inspector library
-        implementation("io.github.srjranjan:shared:1.0.13")
+        implementation("io.github.srjranjan:shared:1.0.20")
     }
 }
 ```
@@ -82,10 +79,10 @@ To automatically isolate the inspector to development builds and use the safe no
 ```kotlin
 dependencies {
     // Standard debug builds contain the inspector UI and Room DB
-    debugImplementation("io.github.srjranjan:shared:1.0.13")
+    debugImplementation("io.github.srjranjan:shared:1.0.20")
     
     // Release builds compile against the empty no-op variant
-    releaseImplementation("io.github.srjranjan:shared-no-op:1.0.13")
+    releaseImplementation("io.github.srjranjan:shared-no-op:1.0.20")
 }
 ```
 
@@ -95,7 +92,7 @@ For native iOS apps or when linking the shared framework directly via Swift Pack
 
 1. In Xcode, navigate to **File** -> **Add Packages...**
 2. Enter the repository URL: `https://github.com/srjranjan/Notification-Inspector`
-3. Define your package dependency rule (e.g., Up to Next Major **1.0.13** or select the `main` branch).
+3. Define your package dependency rule (e.g., Up to Next Major **1.0.20** or select the `main` branch).
 
 ---
 
@@ -114,7 +111,7 @@ import com.srj.notificationinspector.PlatformContext
 val platformContext = PlatformContext(androidContext)
 val inspector = NotificationInspector(platformContext)
 
-// iOS / JVM / Desktop Initialization
+// iOS Initialization
 val platformContext = PlatformContext()
 val inspector = NotificationInspector(platformContext)
 ```
