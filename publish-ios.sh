@@ -30,7 +30,20 @@ if [ -z "$VERSION" ]; then
     exit 1
 fi
 
+# Clean version input so both "v1.0.19" and "1.0.19" yield VERSION="1.0.19" and TAG_NAME="v1.0.19"
+VERSION=$(echo "$VERSION" | sed 's/^v//')
 TAG_NAME="v$VERSION"
+
+# Detect current branch
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Determine prerelease flag based on branch or version suffix
+if [ "$CURRENT_BRANCH" = "dev" ] || echo "$VERSION" | grep -Eq -- '-(alpha|beta|dev)'; then
+    PRERELEASE_FLAG="--prerelease"
+else
+    PRERELEASE_FLAG=""
+fi
+
 REPO_OWNER_REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
 SHARED_DOWNLOAD_URL="https://github.com/$REPO_OWNER_REPO/releases/download/$TAG_NAME/$SHARED_FRAMEWORK_NAME.xcframework.zip"
 NOOP_DOWNLOAD_URL="https://github.com/$REPO_OWNER_REPO/releases/download/$TAG_NAME/$NOOP_FRAMEWORK_NAME.xcframework.zip"
@@ -38,6 +51,7 @@ NOOP_DOWNLOAD_URL="https://github.com/$REPO_OWNER_REPO/releases/download/$TAG_NA
 echo "=========================================="
 echo "🚀 Publishing iOS Framework Version: $VERSION"
 echo "📦 Target Repository: $REPO_OWNER_REPO"
+echo "🌿 Current Branch: $CURRENT_BRANCH"
 echo "=========================================="
 
 # 1. Clean and build the release XCFrameworks locally
@@ -112,16 +126,17 @@ EOF
 # 5. Create GitHub Release & Commit Package.swift
 echo "🌐 [5/5] Creating GitHub Release & uploading binaries..."
 
-# Commit Package.swift and tag it
+# Commit Package.swift and push to the current branch
 git add Package.swift
 git commit -m "chore(release): update Package.swift for $TAG_NAME" || echo "No changes in Package.swift to commit"
-git push origin HEAD
+git push origin "$CURRENT_BRANCH"
 
 # Create GitHub Release with both binary assets
 gh release create "$TAG_NAME" "$SHARED_ZIP_PATH" "$NOOP_ZIP_PATH" \
+  --target "$CURRENT_BRANCH" \
+  $PRERELEASE_FLAG \
   --title "Release $TAG_NAME" \
-  --notes "iOS Binary XCFrameworks for version $VERSION." \
-  --clobber
+  --notes "Release $TAG_NAME ($CURRENT_BRANCH branch)"
 
 echo "=========================================="
 echo "SUCCESS! 🎉"
