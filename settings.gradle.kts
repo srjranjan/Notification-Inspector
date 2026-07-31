@@ -49,13 +49,6 @@ fun findPublishingProperty(name: String): String? {
     return null
 }
 
-val target = findPublishingProperty("publishTarget") ?: "android"
-val isAndroidOnly = !target.equals("all", ignoreCase = true)
-
 include(":shared")
 include(":shared-no-op")
 include(":androidApp")
-if (!isAndroidOnly) {
-    include(":desktopApp")
-    include(":webApp")
-}
