@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 import java.util.Properties
 
@@ -22,41 +20,25 @@ val suffix = findPublishingProperty("stagingSuffix") ?: ""
 version = if (suffix.isNotEmpty()) "$baseVersion-$suffix" else baseVersion
 
 kotlin {
-    val isXcodeBuild = System.getenv("SDK_NAME") != null
-    val isAndroidOnly = !isXcodeBuild && !(findPublishingProperty("publishTarget") ?: "android").equals("all", ignoreCase = true)
-
-    if (!isAndroidOnly) {
-        val xcf = XCFramework("shared")
-        listOf(
-            iosArm64(),
-            iosSimulatorArm64()
-        ).forEach { iosTarget ->
-            iosTarget.binaries.framework {
-                baseName = "shared"
-                xcf.add(this)
-                isStatic = true
-            }
-        }
-
-        jvm()
-        
-        js {
-            browser()
-        }
-        
-        @OptIn(ExperimentalWasmDsl::class)
-        wasmJs {
-            browser()
+    val xcf = XCFramework("shared")
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "shared"
+            xcf.add(this)
+            isStatic = true
         }
     }
-    
+
     androidLibrary {
        namespace = "com.srj.notificationinspector.shared"
        compileSdk = libs.versions.android.compileSdk.get().toInt()
        minSdk = libs.versions.android.minSdk.get().toInt()
-     
+
        compilerOptions {
-           jvmTarget = JvmTarget.JVM_11
+           jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
        }
        androidResources {
            enable = true
@@ -65,7 +47,7 @@ kotlin {
            isIncludeAndroidResources = true
        }
     }
-    
+
     sourceSets {
         val dbMain by creating {
             dependsOn(commonMain.get())
@@ -78,13 +60,10 @@ kotlin {
 
         androidMain.get().dependsOn(dbMain)
 
-        if (!isAndroidOnly) {
-            iosMain.get().dependsOn(dbMain)
-            jvmMain.get().dependsOn(dbMain)
+        iosMain.get().dependsOn(dbMain)
 
-            iosArm64Main.get().dependsOn(iosMain.get())
-            iosSimulatorArm64Main.get().dependsOn(iosMain.get())
-        }
+        iosArm64Main.get().dependsOn(iosMain.get())
+        iosSimulatorArm64Main.get().dependsOn(iosMain.get())
 
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
@@ -106,11 +85,6 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
-        if (!isAndroidOnly) {
-            jsMain.dependencies {
-                implementation(libs.wrappers.browser)
-            }
-        }
     }
 }
 
@@ -121,17 +95,12 @@ room {
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
 
-    val isXcodeBuild = System.getenv("SDK_NAME") != null
-    val isAndroidOnly = !isXcodeBuild && !(findPublishingProperty("publishTarget") ?: "android").equals("all", ignoreCase = true)
-
     configurations.configureEach {
         if (name.startsWith("kspAndroid", ignoreCase = true) || name.startsWith("kspSharedAndroid", ignoreCase = true)) {
             project.dependencies.add(name, libs.androidx.room.compiler)
         }
-        if (!isAndroidOnly) {
-            if (name.startsWith("kspIos", ignoreCase = true) || name.startsWith("kspJvm", ignoreCase = true)) {
-                project.dependencies.add(name, libs.androidx.room.compiler)
-            }
+        if (name.startsWith("kspIos", ignoreCase = true)) {
+            project.dependencies.add(name, libs.androidx.room.compiler)
         }
     }
 }
@@ -165,7 +134,7 @@ afterEvaluate {
             withType<MavenPublication> {
                 pom {
                     name.set("Notification Inspector")
-                    description.set("A high-performance Notification Inspector Kotlin Multiplatform library targeting Android, iOS, JVM, JS, and Wasm.")
+                    description.set("A high-performance Notification Inspector Kotlin Multiplatform library targeting Android and iOS.")
                     url.set("https://github.com/srjranjan/Notification-Inspector")
 
                     licenses {
