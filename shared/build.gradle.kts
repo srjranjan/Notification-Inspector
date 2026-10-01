@@ -20,6 +20,13 @@ val suffix = findPublishingProperty("stagingSuffix") ?: ""
 version = if (suffix.isNotEmpty()) "$baseVersion-$suffix" else baseVersion
 
 kotlin {
+    // Emit metadata readable by consumers on Kotlin 2.2+ (compiler rejects metadata
+    // more than one minor version newer than itself).
+    compilerOptions {
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
+    }
+
     val xcf = XCFramework("shared")
     listOf(
         iosArm64(),
